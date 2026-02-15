@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
-
+from decouple import config, Csv
 try:
     from decouple import config as env
 except ImportError:
@@ -47,9 +47,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # Third-party
-   # 'rest_framework',
+    'rest_framework',
     #'rest_framework_simplejwt',
-    #'corsheaders',
+    'corsheaders',
     #'django_filters',
     #'drf_spectacular',
     #'django_celery_beat',
@@ -65,9 +65,16 @@ INSTALLED_APPS = [
 
 
 MIDDLEWARE = [
+    # 1. Security (always first)
     'django.middleware.security.SecurityMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
+    
+    # 2. Session
     'django.contrib.sessions.middleware.SessionMiddleware',
+    
+    # 3. CORS - MUST BE HERE, BEFORE CommonMiddleware!
+    'corsheaders.middleware.CorsMiddleware',  # ← ADD THIS LINE
+    
+    # 4. Common
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -172,13 +179,7 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 20,
 }
 
-# ============================================
-# JWT SETTINGS
-# ============================================
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-}
+
 
 # ============================================
 # CORS
@@ -211,3 +212,211 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 
+# ============================================
+# DJANGO REST FRAMEWORK CONFIGURATION
+# ============================================
+
+REST_FRAMEWORK = {
+    # Authentication Classes
+    # How users prove who they are
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        # Session Authentication - Uses Django's session cookies
+        # Good for: Browsable API, same-domain requests
+        # How it works: Django sets a session cookie on login
+        'rest_framework.authentication.SessionAuthentication',
+        
+        # Basic Authentication - Sends username/password with each request
+        # Good for: Testing, development
+        # How it works: Authorization: Basic base64(username:password)
+        # ⚠️ Only use over HTTPS in production!
+        'rest_framework.authentication.BasicAuthentication',
+        
+        # JWT Authentication - We'll add this in Part 4
+        # 'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    
+    # Permission Classes
+    # Who can access what
+    'DEFAULT_PERMISSION_CLASSES': [
+        # IsAuthenticated - User must be logged in
+        # Other options:
+        # - AllowAny: Anyone can access (dangerous!)
+        # - IsAdminUser: Only staff users
+        # - IsAuthenticatedOrReadOnly: Login required for write, anyone can read
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    
+    # Pagination
+    # Limit number of results per page
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+    
+    # Why pagination?
+    # Without: GET /api/incidents/ returns ALL incidents (could be 10,000!)
+    # With: Returns 20 incidents + links to next/previous pages
+    #
+    # Response format:
+    # {
+    #   "count": 153,
+    #   "next": "http://api.example.com/incidents/?page=2",
+    #   "previous": null,
+    #   "results": [... 20 incidents ...]
+    # }
+    
+    # Filtering, Searching, Ordering
+    'DEFAULT_FILTER_BACKENDS': [
+        # DjangoFilterBackend - Filter by field values
+        # Example: /api/incidents/?status=SUBMITTED&severity=HIGH
+        'django_filters.rest_framework.DjangoFilterBackend',
+        
+        # SearchFilter - Full-text search
+        # Example: /api/incidents/?search=warehouse
+        # Searches in fields you specify (title, description, etc.)
+        'rest_framework.filters.SearchFilter',
+        
+        # OrderingFilter - Sort results
+        # Example: /api/incidents/?ordering=-incident_date
+        # - (minus) = descending, no prefix = ascending
+        'rest_framework.filters.OrderingFilter',
+    ],
+    
+    # Response Renderers
+    # How to format the output
+    'DEFAULT_RENDERER_CLASSES': [
+        # JSONRenderer - Returns JSON (for React, mobile apps)
+        'rest_framework.renderers.JSONRenderer',
+        
+        # BrowsableAPIRenderer - Nice HTML interface for testing
+        # You can test your API directly in the browser!
+        # ⚠️ Disable in production (security)
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ],
+    
+    # Request Parsers
+    # What content types can the API accept?
+    'DEFAULT_PARSER_CLASSES': [
+        # JSONParser - application/json (most common)
+        'rest_framework.parsers.JSONParser',
+        
+        # FormParser - application/x-www-form-urlencoded
+        # For HTML forms
+        'rest_framework.parsers.FormParser',
+        
+        # MultiPartParser - multipart/form-data
+        # For file uploads
+        'rest_framework.parsers.MultiPartParser',
+    ],
+    
+    # Date/Time Format
+    # ISO 8601 standard
+    'DATETIME_FORMAT': '%Y-%m-%dT%H:%M:%SZ',
+    # Example: 2026-02-15T14:30:00Z
+    
+    # Exception Handler
+    # How errors are formatted
+    'EXCEPTION_HANDLER': 'rest_framework.views.exception_handler',
+}
+
+# What does each setting do?
+# 
+# AUTHENTICATION:
+# - Identifies who the user is
+# - Session: Uses cookies (like regular Django)
+# - Basic: Sends username/password (insecure without HTTPS)
+# - JWT: Stateless tokens (we'll add this later)
+# 
+# PERMISSIONS:
+# - Controls what users can do
+# - IsAuthenticated: Must be logged in
+# - Can customize per view
+# 
+# PAGINATION:
+# - Prevents loading thousands of records
+# - Improves performance
+# - Better UX
+# 
+# FILTERING:
+# - DjangoFilterBackend: ?status=OPEN
+# - SearchFilter: ?search=warehouse
+# - OrderingFilter: ?ordering=-created_at
+# 
+# RENDERERS:
+# - JSON: For APIs (React, mobile)
+# - Browsable: For testing in browser
+# config/settings.py (scroll to bottom and add)
+
+# ============================================
+# CORS (Cross-Origin Resource Sharing) CONFIGURATION
+# ============================================
+
+# Development: Allow requests from React development servers
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",      # Create React App default port
+    "http://localhost:5173",      # Vite default port
+    "http://127.0.0.1:3000",     # Alternative localhost
+    "http://127.0.0.1:5173",     # Alternative localhost
+]
+
+# Why multiple origins?
+# - Different tools use different ports
+# - Some browsers/tools use localhost, others use 127.0.0.1
+# - Better to be permissive in development
+# - In production, we'll use only our actual domain
+
+# Allow credentials (cookies, authorization headers)
+CORS_ALLOW_CREDENTIALS = True
+
+# Why True?
+# - Allows cookies to be sent cross-origin
+# - Allows Authorization headers
+# - Required for session auth and JWT
+# - Must be True if using authentication
+
+# Allowed HTTP methods
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+# These are the standard REST methods
+# OPTIONS is for preflight requests (browser checks before actual request)
+
+# Allowed headers
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+# Important headers explained:
+# - authorization: For JWT tokens (Bearer <token>)
+# - content-type: Tells server what format data is in (application/json)
+# - x-csrftoken: For CSRF protection
+# - origin: Browser automatically adds this
+
+# Alternative for development (easier but less secure):
+# CORS_ALLOW_ALL_ORIGINS = True  # ⚠️ NEVER use in production!
+# 
+# Why not use this?
+# - Opens your API to ANY website
+# - Security risk
+# - Only OK for public APIs with no authentication
+# - Always specify exact origins in production
+
+# Production configuration (example - we'll use this later):
+# if not DEBUG:
+#     CORS_ALLOWED_ORIGINS = [
+#         "https://yourdomain.com",
+#         "https://www.yourdomain.com",
+#     ]
+#     CORS_ALLOW_ALL_ORIGINS = False
