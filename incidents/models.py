@@ -1,10 +1,9 @@
-# incidents/models.py
-
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.core.validators import MinValueValidator
 from datetime import datetime
+from django.contrib.contenttypes.fields import GenericRelation
 
 class Incident(models.Model):
     """
@@ -197,14 +196,14 @@ class Incident(models.Model):
         null=True,
         help_text="Description of any injuries sustained"
     )
-    # Optional: Only for accidents with injuries
+    # Only for accidents with injuries
     
     property_damage = models.TextField(
         blank=True,
         null=True,
         help_text="Description of property/equipment damage"
     )
-    # Optional: Only if there was damage
+    # Only if there was damage
     
     work_hours_lost = models.PositiveIntegerField(
         default=0,
@@ -292,7 +291,6 @@ class Incident(models.Model):
         """
         return f"{self.reference} - {self.title}"
     
-    # Example output: "INC-2026-00001 - Worker slipped in warehouse"
     
     # ============================================
     # SAVE METHOD (Auto-generate reference)
@@ -303,28 +301,22 @@ class Incident(models.Model):
         Override save method to auto-generate reference number
         
         Format: INC-YYYY-NNNNN
-        Example: INC-2026-00001
         
         Logic:
-        1. Check if this is a new incident (no reference yet)
+        1. Check if this is a new incident
         2. Get current year
         3. Find the highest incident number for this year
         4. Increment by 1
         5. Format as INC-YYYY-NNNNN
         """
         if not self.reference:  # Only generate if reference is empty
-            # Get current year
             current_year = datetime.now().year
-            
-            # Find the last incident of this year
-            # reference__startswith: SQL LIKE 'INC-2026%'
             last_incident = Incident.objects.filter(
                 reference__startswith=f'INC-{current_year}'
             ).order_by('reference').last()
             
             if last_incident:
                 # Extract the number from last reference
-                # Example: "INC-2026-00042" → "00042" → 42
                 last_number = int(last_incident.reference.split('-')[-1])
                 new_number = last_number + 1
             else:
@@ -369,9 +361,6 @@ class Incident(models.Model):
         return False
     
     def get_severity_color(self):
-        """
-        Return color code for severity (for UI)
-        """
         colors = {
             self.SEVERITY_LOW: '#28a745',      # Green
             self.SEVERITY_MEDIUM: '#ffc107',   # Yellow
@@ -408,3 +397,13 @@ class Incident(models.Model):
         self.assigned_to = user
         self.save()
         return True
+    # ============================================
+    # GENERIC RELATIONS
+    # ============================================
+    
+    evidence = GenericRelation(
+        'evidence.Evidence',
+        related_query_name='incident'
+    )
+    # Access evidence: incident.evidence.all()
+    # Reverse query: Evidence.objects.filter(incident=some_incident)

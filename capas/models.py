@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from incidents.models import Incident
 from datetime import datetime
+from django.contrib.contenttypes.fields import GenericRelation
 
 class CAPA(models.Model):
     """
@@ -284,3 +285,12 @@ class CAPA(models.Model):
             4: '#dc3545',    # Red
         }
         return colors.get(self.priority, '#6c757d')
+    # ============================================
+    # GENERIC RELATIONS
+    # ============================================
+    
+    evidence = GenericRelation(
+        'evidence.Evidence',
+        related_query_name='capa'
+    )
+    # Access evidence: capa.evidence.all()

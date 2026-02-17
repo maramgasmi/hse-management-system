@@ -420,3 +420,55 @@ CORS_ALLOW_HEADERS = [
 #         "https://www.yourdomain.com",
 #     ]
 #     CORS_ALLOW_ALL_ORIGINS = False
+
+
+# ============================================
+# MEDIA FILES (User Uploads)
+# ============================================
+
+# URL that handles the media served from MEDIA_ROOT
+MEDIA_URL = '/media/'
+
+# Absolute filesystem path to the directory that will hold user-uploaded files
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Why separate STATIC vs MEDIA?
+# STATIC_URL = '/static/'    → Your CSS, JS, images (part of your code)
+# STATIC_ROOT = ...          → Collected static files for production
+# 
+# MEDIA_URL = '/media/'      → User uploads (photos, documents, etc.)
+# MEDIA_ROOT = ...           → Where uploads are stored
+# 
+# STATIC files: version controlled, same for all users
+# MEDIA files: NOT in Git, different for each deployment
+
+# File upload settings
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
+# Files larger than this are streamed to disk instead of memory
+# Prevents large uploads from consuming too much RAM
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
+# Maximum size of request body
+# Prevents denial-of-service via huge uploads
+
+# Allowed file extensions (for security)
+ALLOWED_UPLOAD_EXTENSIONS = [
+    # Images
+    '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg', '.webp',
+    # Documents
+    '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
+    '.txt', '.csv', '.rtf', '.odt', '.ods', '.odp',
+    # Archives
+    '.zip', '.rar', '.7z', '.tar', '.gz',
+    # Videos (if needed)
+    '.mp4', '.avi', '.mov', '.wmv', '.flv', '.mkv',
+]
+
+# Maximum file size (50 MB)
+MAX_UPLOAD_SIZE = 50 * 1024 * 1024  # 50 MB in bytes
+
+# Why these limits?
+# - Prevent abuse (users uploading huge files)
+# - Server storage management
+# - Performance (large files slow down uploads)
+# - Security (limit attack surface)
