@@ -20,7 +20,6 @@ class IncidentAdmin(admin.ModelAdmin):
     # LIST VIEW CONFIGURATION
     # ============================================
     
-    # Fields to display in the list view
     list_display = [
         'reference',           # Reference number
         'title_short',         # Truncated title (custom method)
