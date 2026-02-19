@@ -51,7 +51,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
     'django_filters',
-    #'drf_spectacular',
+    'drf_spectacular',
     #'django_celery_beat',
     # Our custom apps (HSE Management System)
     'users',              # User management extensions
@@ -152,22 +152,46 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 #AUTH_USER_MODEL = 'users.User'
 
 # ============================================
-# REST FRAMEWORK
+# DJANGO REST FRAMEWORK CONFIGURATION
 # ============================================
 REST_FRAMEWORK = {
+    # Authentication & Permissions
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
-    'DEFAULT_FILTER_BACKENDS': (
-        'django_filters.rest_framework.DjangoFilterBackend',
-    ),
+    
+    # Schema Generation (THIS WAS BEING OVERWRITTEN)
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    
+    # Pagination
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
+    
+    # Filtering, Searching, Ordering
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ),
+    
+    # Renderers and Parsers
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ],
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.FormParser',
+        'rest_framework.parsers.MultiPartParser',
+    ],
+    
+    # Formats
+    'DATETIME_FORMAT': '%Y-%m-%dT%H:%M:%SZ',
 }
 
 
@@ -201,110 +225,6 @@ SPECTACULAR_SETTINGS = {
 # ============================================
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-
-
-# ============================================
-# DJANGO REST FRAMEWORK CONFIGURATION
-# ============================================
-
-REST_FRAMEWORK = {
-    # Authentication Classes
-    # How users prove who they are
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        # Session Authentication - Uses Django's session cookies
-        # Good for: Browsable API, same-domain requests
-        # How it works: Django sets a session cookie on login
-        'rest_framework.authentication.SessionAuthentication',
-        
-        # Basic Authentication - Sends username/password with each request
-        # Good for: Testing, development
-        # How it works: Authorization: Basic base64(username:password)
-        # ⚠️ Only use over HTTPS in production!
-        'rest_framework.authentication.BasicAuthentication',
-        
-        # JWT Authentication - We'll add this in Part 4
-        # 'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ],
-    
-    # Permission Classes
-    # Who can access what
-    'DEFAULT_PERMISSION_CLASSES': [
-        # IsAuthenticated - User must be logged in
-        # Other options:
-        # - AllowAny: Anyone can access (dangerous!)
-        # - IsAdminUser: Only staff users
-        # - IsAuthenticatedOrReadOnly: Login required for write, anyone can read
-        'rest_framework.permissions.IsAuthenticated',
-    ],
-    
-    # Pagination
-    # Limit number of results per page
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 20,
-    
-    # Why pagination?
-    # Without: GET /api/incidents/ returns ALL incidents (could be 10,000!)
-    # With: Returns 20 incidents + links to next/previous pages
-    #
-    # Response format:
-    # {
-    #   "count": 153,
-    #   "next": "http://api.example.com/incidents/?page=2",
-    #   "previous": null,
-    #   "results": [... 20 incidents ...]
-    # }
-    
-    # Filtering, Searching, Ordering
-    'DEFAULT_FILTER_BACKENDS': [
-        # DjangoFilterBackend - Filter by field values
-        'django_filters.rest_framework.DjangoFilterBackend',
-        
-        # SearchFilter - Full-text search
-        # Searches in fields you specify (title, description, etc.)
-        'rest_framework.filters.SearchFilter',
-        
-        # OrderingFilter - Sort results
-        # Example: /api/incidents/?ordering=-incident_date
-        # - (minus) = descending, no prefix = ascending
-        'rest_framework.filters.OrderingFilter',
-    ],
-    
-    # Response Renderers
-    # How to format the output
-    'DEFAULT_RENDERER_CLASSES': [
-        # JSONRenderer - Returns JSON (for React, mobile apps)
-        'rest_framework.renderers.JSONRenderer',
-        
-        # BrowsableAPIRenderer - Nice HTML interface for testing
-        # You can test your API directly in the browser!
-        # ⚠️ Disable in production (security)
-        'rest_framework.renderers.BrowsableAPIRenderer',
-    ],
-    
-    # Request Parsers
-    # What content types can the API accept?
-    'DEFAULT_PARSER_CLASSES': [
-        # JSONParser - application/json (most common)
-        'rest_framework.parsers.JSONParser',
-        
-        # FormParser - application/x-www-form-urlencoded
-        # For HTML forms
-        'rest_framework.parsers.FormParser',
-        
-        # MultiPartParser - multipart/form-data
-        # For file uploads
-        'rest_framework.parsers.MultiPartParser',
-    ],
-    
-    # Date/Time Format
-    # ISO 8601 standard
-    'DATETIME_FORMAT': '%Y-%m-%dT%H:%M:%SZ',
-    # Example: 2026-02-15T14:30:00Z
-    
-    # Exception Handler
-    # How errors are formatted
-    'EXCEPTION_HANDLER': 'rest_framework.views.exception_handler',
-}
 
 # What does each setting do?
 # 
@@ -461,3 +381,41 @@ MAX_UPLOAD_SIZE = 50 * 1024 * 1024  # 50 MB in bytes
 # - Server storage management
 # - Performance (large files slow down uploads)
 # - Security (limit attack surface)
+
+# ============================================
+# DRF SPECTACULAR (API DOCUMENTATION)
+# ============================================
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'HSE Management System API',
+    'DESCRIPTION': '''
+    Health, Safety & Environment Management System API
+    
+    This API provides comprehensive endpoints for managing:
+    - Incident reporting and tracking
+    - Risk assessments
+    - Corrective and Preventive Actions (CAPAs)
+    - Evidence and file uploads
+    - Notifications
+    - Analytics and KPIsAuthentication: JWT Bearer Token
+    ''',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    
+    # Swagger UI settings
+    'SWAGGER_UI_SETTINGS': {
+        'deepLinking': True,
+        'persistAuthorization': True,
+        'displayOperationId': True,
+    },
+    # Authentication
+    'SECURITY': [
+        {
+            'Bearer': {
+                'type': 'http',
+                'scheme': 'bearer',
+                'bearerFormat': 'JWT',
+            }
+        }
+    ],
+}

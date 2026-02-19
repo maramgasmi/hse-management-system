@@ -1,11 +1,23 @@
 from rest_framework import serializers
 from .models import RiskAssessment
 from users.serializers import UserBasicSerializer
-
+from drf_spectacular.utils import extend_schema_field
 class RiskAssessmentSerializer(serializers.ModelSerializer):
     """
     Serializer for Risk Assessment
     """
+    
+    @extend_schema_field(serializers.CharField()) 
+    def get_risk_display(self, obj):
+        return obj.risk_display()
+
+    @extend_schema_field(serializers.CharField()) 
+    def get_risk_color(self, obj):
+        return obj.risk_color()
+        
+    @extend_schema_field(serializers.BooleanField()) 
+    def get_requires_management_review(self, obj):
+        return obj.get_requires_management_review()
     
     assessed_by = UserBasicSerializer(read_only=True)
     
@@ -38,18 +50,7 @@ class RiskAssessmentSerializer(serializers.ModelSerializer):
             'updated_at',
         ]
     
-    def get_risk_display(self, obj):
-        """Get risk display"""
-        return obj.get_risk_display()
-    
-    def get_risk_color(self, obj):
-        """Get risk color"""
-        return obj.get_risk_color()
-    
-    def get_requires_management_review(self, obj):
-        """Check if requires management review"""
-        return obj.requires_management_review()
-    
+     
     def validate_probability(self, value):
         """Validate probability is between 1 and 5"""
         if not 1 <= value <= 5:

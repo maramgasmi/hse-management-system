@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
+from drf_spectacular.utils import extend_schema
 
 from .models import Incident
 from .serializers import (
@@ -34,7 +35,9 @@ class IncidentViewSet(viewsets.ModelViewSet):
     """
     
     permission_classes = [IsAuthenticated]
-    
+
+    schema = None
+
     # Filtering, searching, ordering
     filter_backends = [
         DjangoFilterBackend,

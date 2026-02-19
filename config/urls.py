@@ -8,6 +8,14 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView,
 )
 from rest_framework.routers import DefaultRouter
+from drf_spectacular.openapi import AutoSchema
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularSwaggerView,
+    SpectacularRedocView,
+)
+
+
 from incidents.views import IncidentViewSet
 from capas.views import CAPAViewSet
 from risk_assessment.views import RiskAssessmentViewSet
@@ -28,8 +36,14 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     
+    # API Documentation
+    path('api/schema/', SpectacularAPIView.as_view(schema=AutoSchema()), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+
     # API endpoints 
     path('api/', include(router.urls)),
+    path('api/v1/', include(router.urls)),
 ] 
 
 # Serve media files in development

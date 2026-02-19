@@ -2,7 +2,7 @@ from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-
+from drf_spectacular.utils import extend_schema
 from .models import Notification
 from .serializers import NotificationSerializer
 
@@ -19,7 +19,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
     POST   /api/notifications/mark-all-read/ → Mark all as read
     GET    /api/notifications/unread-count/  → Count unread
     """
-    
+    schema = None
     serializer_class = NotificationSerializer
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'patch', 'delete', 'head', 'options']
