@@ -7,6 +7,18 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
     TokenVerifyView,
 )
+from rest_framework.routers import DefaultRouter
+from incidents.views import IncidentViewSet
+from capas.views import CAPAViewSet
+from risk_assessment.views import RiskAssessmentViewSet
+from notifications.views import NotificationViewSet
+
+router = DefaultRouter()
+router.register(r'incidents', IncidentViewSet, basename='incident')
+router.register(r'capas', CAPAViewSet, basename='capa')
+router.register(r'risk-assessments', RiskAssessmentViewSet, basename='risk-assessment')
+router.register(r'notifications', NotificationViewSet, basename='notification')
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -17,9 +29,8 @@ urlpatterns = [
     path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     
     # API endpoints 
-    # path('api/incidents/', include('incidents.urls')),
-    # path('api/capas/', include('capas.urls')),
-]
+    path('api/', include(router.urls)),
+] 
 
 # Serve media files in development
 if settings.DEBUG:

@@ -48,9 +48,9 @@ INSTALLED_APPS = [
 
     # Third-party
     'rest_framework',
-    #'rest_framework_simplejwt',
+    'rest_framework_simplejwt',
     'corsheaders',
-    #'django_filters',
+    'django_filters',
     #'drf_spectacular',
     #'django_celery_beat',
     # Our custom apps (HSE Management System)
@@ -103,8 +103,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
     'default': {
@@ -115,8 +113,6 @@ DATABASES = {
 
 
 # Password validation
-# https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -134,8 +130,6 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 # Internationalization
-# https://docs.djangoproject.com/en/4.2/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
@@ -146,12 +140,9 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
-
 STATIC_URL = 'static/'
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -266,11 +257,9 @@ REST_FRAMEWORK = {
     # Filtering, Searching, Ordering
     'DEFAULT_FILTER_BACKENDS': [
         # DjangoFilterBackend - Filter by field values
-        # Example: /api/incidents/?status=SUBMITTED&severity=HIGH
         'django_filters.rest_framework.DjangoFilterBackend',
         
         # SearchFilter - Full-text search
-        # Example: /api/incidents/?search=warehouse
         # Searches in fields you specify (title, description, etc.)
         'rest_framework.filters.SearchFilter',
         
