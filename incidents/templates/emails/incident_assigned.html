@@ -1,0 +1,68 @@
+{% extends 'emails/base_email.html' %}
+
+{% block content %}
+<h2>🔔 Incident Assigned to You</h2>
+
+<p>Hello {{ recipient_name }},</p>
+
+<p>You have been assigned to investigate the following incident:</p>
+
+<div class="info-box">
+    <div class="info-row">
+        <span class="info-label">Reference:</span>
+        <span class="info-value"><strong>{{ incident.reference }}</strong></span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Title:</span>
+        <span class="info-value">{{ incident.title }}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Severity:</span>
+        <span class="info-value">
+            <span class="severity-badge severity-{{ incident.severity|lower }}">
+                {{ incident.get_severity_display }}
+            </span>
+        </span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Location:</span>
+        <span class="info-value">{{ incident.location }}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Reported by:</span>
+        <span class="info-value">{{ incident.reporter.get_full_name|default:incident.reporter.username }}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Reported on:</span>
+        <span class="info-value">{{ incident.reported_date|date:"F d, Y g:i A" }}</span>
+    </div>
+</div>
+
+{% if incident.description %}
+<p><strong>Description:</strong></p>
+<p style="background-color: #f8f9fa; padding: 15px; border-radius: 4px; border-left: 4px solid #667eea;">
+    {{ incident.description }}
+</p>
+{% endif %}
+
+<p><strong>Required Actions:</strong></p>
+<ul>
+    <li>Review incident details thoroughly</li>
+    <li>Conduct investigation</li>
+    <li>Create risk assessment if needed</li>
+    <li>Propose corrective actions (CAPAs)</li>
+    <li>Update incident status</li>
+</ul>
+
+<a href="http://localhost:3000/incidents/{{ incident.id }}" class="button">
+    Start Investigation
+</a>
+
+<p style="color: #dc3545; font-weight: 600;">
+    {% if incident.severity == 'CRITICAL' %}
+    ⚠️ CRITICAL: This incident requires immediate attention!
+    {% elif incident.severity == 'HIGH' %}
+    ⚠️ HIGH PRIORITY: Please review within 24 hours.
+    {% endif %}
+</p>
+{% endblock %}

@@ -23,9 +23,6 @@ except ImportError:
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env('SECRET_KEY', 'django-insecure-5ne5_m485%0^5falbeuc0-0!l%c+@ar(ymrc3&#-$hr*#%#93d')
 
@@ -33,10 +30,6 @@ SECRET_KEY = env('SECRET_KEY', 'django-insecure-5ne5_m485%0^5falbeuc0-0!l%c+@ar(
 DEBUG = env('DEBUG', default='True') == 'True'
 
 ALLOWED_HOSTS = env('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
-
-
-# Application definition
-
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -52,26 +45,28 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_filters',
     'drf_spectacular',
-    #'django_celery_beat',
-    # Our custom apps (HSE Management System)
-    'users',              # User management extensions
-    'incidents',          # Incident reporting and tracking
-    'risk_assessment',    # Risk evaluation
-    'capas',             # Corrective and Preventive Actions
-    'evidence',          # File attachments (photos, documents)
-    'notifications',     # Notification system
-    'analytics',         # KPI calculations
+    'django_celery_beat',
+    'django_celery_results',
+    
+    #custom apps (HSE Management System)
+    'users',              
+    'incidents',          
+    'risk_assessment',    
+    'capas',             
+    'evidence',          
+    'notifications',     
+    'analytics',         
 ]
 
 
 MIDDLEWARE = [
-    # 1. Security (always first)
+    # 1. Security 
     'django.middleware.security.SecurityMiddleware',
     
     # 2. Session
     'django.contrib.sessions.middleware.SessionMiddleware',
     
-    # 3. CORS - MUST BE HERE, BEFORE CommonMiddleware!
+    # 3. CORS - MUST BE BEFORE CommonMiddleware!
     'corsheaders.middleware.CorsMiddleware',  # ← ADD THIS LINE
     
     # 4. Common
@@ -230,9 +225,9 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # 
 # AUTHENTICATION:
 # - Identifies who the user is
-# - Session: Uses cookies (like regular Django)
+# - Session: Uses cookies 
 # - Basic: Sends username/password (insecure without HTTPS)
-# - JWT: Stateless tokens (we'll add this later)
+# - JWT: Stateless tokens 
 # 
 # PERMISSIONS:
 # - Controls what users can do
@@ -292,7 +287,7 @@ CORS_ALLOW_METHODS = [
 ]
 
 # These are the standard REST methods
-# OPTIONS is for preflight requests (browser checks before actual request)
+# OPTIONS is for preflight requests
 
 # Allowed headers
 CORS_ALLOW_HEADERS = [
@@ -419,3 +414,120 @@ SPECTACULAR_SETTINGS = {
         }
     ],
 }
+# ============================================
+# CELERY CONFIGURATION
+# ============================================
+
+# Redis as message broker
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+
+# Store results in Redis
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
+# Or store results in database:
+#CELERY_RESULT_BACKEND = 'django-db'
+
+# Task serialization
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+
+# Timezone
+CELERY_TIMEZONE = 'UTC'
+
+# Task result expiration (7 days)
+CELERY_RESULT_EXPIRES = 60 * 60 * 24 * 7
+
+# Task time limit (10 minutes max)
+CELERY_TASK_TIME_LIMIT = 10 * 60
+
+# Task soft time limit (warning at 9 minutes)
+CELERY_TASK_SOFT_TIME_LIMIT = 9 * 60
+
+# Task routing
+CELERY_TASK_ROUTES = {
+    'incidents.tasks.*': {'queue': 'incidents'},
+    'notifications.tasks.*': {'queue': 'notifications'},
+}
+
+
+from celery.schedules import crontab
+
+# config/settings.py (update CELERY_BEAT_SCHEDULE)
+
+CELERY_BEAT_SCHEDULE = {
+    # Daily report at 8 AM
+    'daily-incident-report': {
+        'task': 'incidents.tasks.generate_daily_incident_report',
+        'schedule': crontab(hour=8, minute=0),
+    },
+    
+    # Weekly summary every Monday at 9 AM
+    'weekly-summary': {
+        'task': 'incidents.tasks.send_weekly_summary',
+        'schedule': crontab(day_of_week=1, hour=9, minute=0),
+    },
+    
+    # Check overdue every hour
+    'check-overdue-incidents': {
+        'task': 'incidents.tasks.check_overdue_incidents',
+        'schedule': crontab(minute=0),
+    },
+    
+    # Escalate critical every 30 minutes
+    'escalate-critical': {
+        'task': 'incidents.tasks.escalate_critical_incidents',
+        'schedule': crontab(minute='*/30'),
+    },
+    
+    # Monthly metrics on 1st at midnight
+    'monthly-safety-metrics': {
+        'task': 'incidents.tasks.calculate_safety_metrics',
+        'schedule': crontab(day_of_month=1, hour=0, minute=0),
+    },
+    
+    # Cleanup old incidents on 1st at 2 AM
+    'cleanup-old-incidents': {
+        'task': 'incidents.tasks.cleanup_old_incidents',
+        'schedule': crontab(day_of_month=1, hour=2, minute=0),
+    },
+    
+    # FOR TESTING: Every 2 minutes
+    'test-task-every-2-min': {
+        'task': 'incidents.tasks.check_overdue_incidents',
+        'schedule': crontab(minute='*/2'),  # Every 2 minutes
+    },
+}
+# ============================================
+# EMAIL CONFIGURATION
+# ============================================
+# En mode développement, on affiche les emails dans la console
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+#DEFAULT_FROM_EMAIL = 'admin@hse.local'
+#EMAIL_HOST = 'smtp.mailtrap.io'
+# Looking to send emails in production? Check out our Email API/SMTP product!
+#EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
+#EMAIL_HOST_USER = 'c3f38744d6a12b'
+#EMAIL_HOST_PASSWORD = 'be10d56099b022'
+#EMAIL_PORT = '2525'
+#EMAIL_USE_TLS = True
+
+
+from decouple import config
+
+# ============================================
+# EMAIL CONFIGURATION (Gmail)
+# ============================================
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+# Load from environment variables
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='hse-system@example.com')
+
+# Additional settings
+EMAIL_TIMEOUT = 10  # Timeout in seconds

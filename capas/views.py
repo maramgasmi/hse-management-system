@@ -6,6 +6,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
 from django.utils import timezone
 
+from .filters import CAPAFilter
 from .models import CAPA
 from .serializers import (
     CAPAListSerializer,
@@ -41,13 +42,7 @@ class CAPAViewSet(viewsets.ModelViewSet):
         filters.OrderingFilter,
     ]
     
-    filterset_fields = [
-        'status',
-        'action_type',
-        'priority',
-        'incident',
-        'responsible_person',
-    ]
+    filterset_class = CAPAFilter
     
     search_fields = [
         'reference',

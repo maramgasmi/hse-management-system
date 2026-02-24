@@ -1,0 +1,39 @@
+{% extends 'emails/base_email.html' %}
+
+{% block content %}
+<h2>✅ Incident Validated</h2>
+
+<p>Hello {{ recipient_name }},</p>
+
+<p>Your reported incident has been validated by the HSE team.</p>
+
+<div class="info-box">
+    <div class="info-row">
+        <span class="info-label">Reference:</span>
+        <span class="info-value"><strong>{{ incident.reference }}</strong></span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Title:</span>
+        <span class="info-value">{{ incident.title }}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Status:</span>
+        <span class="info-value">✅ Validated</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Validated by:</span>
+        <span class="info-value">{{ validated_by }}</span>
+    </div>
+</div>
+
+<p>
+    Thank you for your vigilance in reporting this incident. 
+    Your contribution helps maintain a safe working environment for everyone.
+</p>
+
+<a href="http://localhost:3000/incidents/{{ incident.id }}" class="button">
+    View Details
+</a>
+
+<p>If you have any additional information about this incident, please update the incident report.</p>
+{% endblock %}

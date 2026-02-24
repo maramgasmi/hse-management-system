@@ -6,6 +6,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
 
+from .tasks import send_incident_notification
+from .filters import IncidentFilter
 from .models import Incident
 from .serializers import (
     IncidentListSerializer,
@@ -46,14 +48,7 @@ class IncidentViewSet(viewsets.ModelViewSet):
     ]
     
     # Fields to filter by exact match
-    filterset_fields = [
-        'status',
-        'severity',
-        'incident_type',
-        'department',
-        'reporter',
-        'assigned_to',
-    ]
+    filterset_class = IncidentFilter
     
     # Fields to search in
     search_fields = [
@@ -314,3 +309,23 @@ class IncidentViewSet(viewsets.ModelViewSet):
             'by_type': by_type,
             'by_department': by_department,
         })
+    def perform_create(self, serializer):
+        """Called when creating an incident"""
+        incident = serializer.save(reporter=self.request.user)
+        
+        # Queue background task to send notification
+        send_incident_notification.delay(
+            incident_id=incident.id,
+            notification_type='created')
+    
+    def perform_update(self, serializer):
+        """Called when updating an incident"""
+        incident = serializer.save()
+        
+        # If assigned_to changed, send notification
+        if 'assigned_to' in serializer.validated_data:
+            if incident.assigned_to:
+                send_incident_notification.delay(
+                    incident_id=incident.id,
+                    notification_type='assigned'
+                )
