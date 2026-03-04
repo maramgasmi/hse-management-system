@@ -20,13 +20,14 @@ from incidents.views import IncidentViewSet
 from capas.views import CAPAViewSet
 from risk_assessment.views import RiskAssessmentViewSet
 from notifications.views import NotificationViewSet
+from analytics.views import AnalyticsViewSet
 
 router = DefaultRouter()
 router.register(r'incidents', IncidentViewSet, basename='incident')
 router.register(r'capas', CAPAViewSet, basename='capa')
 router.register(r'risk-assessments', RiskAssessmentViewSet, basename='risk-assessment')
 router.register(r'notifications', NotificationViewSet, basename='notification')
-
+router.register(r'analytics', AnalyticsViewSet, basename='analytics')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
