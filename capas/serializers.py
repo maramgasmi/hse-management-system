@@ -60,7 +60,8 @@ class CAPADetailSerializer(serializers.ModelSerializer):
     
     is_overdue = serializers.SerializerMethodField()
     days_until_due = serializers.SerializerMethodField()
-     
+    priority_color = serializers.SerializerMethodField()
+    
     class Meta:
         model = CAPA
         fields = '__all__'
@@ -78,7 +79,9 @@ class CAPADetailSerializer(serializers.ModelSerializer):
         """Get days until due"""
         return obj.days_until_due()
     
-    
+    def get_priority_color(self, obj):
+        """Get priority color"""
+        return obj.get_priority_color()
     
     def validate_title(self, value):
         """Validate title"""

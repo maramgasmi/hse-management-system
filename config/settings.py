@@ -38,6 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'debug_toolbar',  # ← ADD THIS (development only)
+    'silk',
 
     # Third-party
     'rest_framework',
@@ -60,16 +62,18 @@ INSTALLED_APPS = [
 
 
 MIDDLEWARE = [
-    # 1. Security 
+    'debug_toolbar.middleware.DebugToolbarMiddleware',  
+    'silk.middleware.SilkyMiddleware',  
+    # Security 
     'django.middleware.security.SecurityMiddleware',
     
-    # 2. Session
+    #  Session
     'django.contrib.sessions.middleware.SessionMiddleware',
     
-    # 3. CORS - MUST BE BEFORE CommonMiddleware!
-    'corsheaders.middleware.CorsMiddleware',  # ← ADD THIS LINE
+    # CORS - MUST BE BEFORE CommonMiddleware!
+    'corsheaders.middleware.CorsMiddleware',  
     
-    # 4. Common
+    #  Common
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -97,14 +101,23 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'hse_database',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres123',  
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
+
+#DATABASES = {  (for quick development)
+   # 'default': {
+    #    'ENGINE': 'django.db.backends.sqlite3',
+     #   'NAME': BASE_DIR / 'db.sqlite3',
+    #}
+#}
 
 
 # Password validation
@@ -531,3 +544,25 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='hse-system@example.co
 
 # Additional settings
 EMAIL_TIMEOUT = 10  # Timeout in seconds
+
+# ============================================
+# DEBUG TOOLBAR (Development Only)
+# ============================================
+INTERNAL_IPS = [
+    '127.0.0.1',
+    'localhost',
+]
+
+# Show debug toolbar only in DEBUG mode
+if DEBUG:
+    import socket
+    hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
+    INTERNAL_IPS += [ip[: ip.rfind(".")] + ".1" for ip in ips]
+
+# ============================================
+# DJANGO SILK (API Profiling)
+# ============================================
+SILKY_PYTHON_PROFILER = True
+SILKY_PYTHON_PROFILER_BINARY = True
+SILKY_PYTHON_PROFILER_RESULT_PATH = BASE_DIR / 'profiles'
+SILKY_META = True

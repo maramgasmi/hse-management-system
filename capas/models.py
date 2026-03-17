@@ -262,12 +262,6 @@ class CAPA(models.Model):
         """
         Verify CAPA effectiveness
         
-        Args:
-            user: User verifying the action
-            notes: Verification notes
-        
-        Returns:
-            bool: True if verified, False if not allowed
         """
         if self.status == self.STATUS_COMPLETED:
             self.status = self.STATUS_VERIFIED

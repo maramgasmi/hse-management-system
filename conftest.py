@@ -24,10 +24,6 @@ def api_client():
 def user(db):
     """
     Creates a basic test user
-    
-    Usage:
-        def test_with_user(user):
-            assert user.username == 'testuser'
     """
     return User.objects.create_user(
         username='testuser',

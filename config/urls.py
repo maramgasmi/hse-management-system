@@ -55,3 +55,10 @@ if settings.DEBUG:
 # - In development: Django serves files directly (convenient)
 # - In production: Use Nginx/Apache to serve files (much faster)
 # - Never use Django to serve files in production (too slow)
+# Add debug toolbar and silk URLs (development only)
+if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns += [
+        path('__debug__/', include(debug_toolbar.urls)),
+        path('silk/', include('silk.urls', namespace='silk')),
+        ]
