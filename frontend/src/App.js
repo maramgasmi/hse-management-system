@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { Toaster } from 'react-hot-toast';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -9,9 +10,11 @@ import Analytics from './pages/Analytics';
 function App() {
   return (
     <AuthProvider>
+      <Toaster position="top-right" />
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          
           <Route
             path="/dashboard"
             element={
@@ -20,6 +23,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          
           <Route
             path="/incidents"
             element={
@@ -28,7 +32,8 @@ function App() {
               </ProtectedRoute>
             }
           />
-           <Route
+          
+          <Route
             path="/analytics"
             element={
               <ProtectedRoute>
@@ -36,6 +41,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </BrowserRouter>

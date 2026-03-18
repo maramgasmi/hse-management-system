@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 import api from '../services/api';
+import IncidentsByDepartmentChart from '../components/IncidentsByDepartmentChart';
+import IncidentsBySeverityChart from '../components/IncidentsBySeverityChart';
+import TrendsChart from '../components/TrendsChart';
 import {
   ChartBarIcon,
   ArrowTrendingUpIcon,
@@ -12,48 +15,51 @@ const Analytics = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-  const fetchAnalytics = async () => {
-    try {
-      // Use the statistics endpoint that we KNOW works
-      const [statsResponse, incidentsResponse] = await Promise.all([
-        api.get('/incidents/statistics/'),
-        api.get('/incidents/')
-      ]);
-      
-      const stats = statsResponse.data;
-      const incidents = incidentsResponse.data.results || [];
-      // Calculate current month incidents
-      const now = new Date();
-      const currentMonthIncidents = incidents.filter(inc => {
-        const incDate = new Date(inc.created_at || inc.incident_date);
-        return incDate.getMonth() === now.getMonth() && 
-               incDate.getFullYear() === now.getFullYear();
-      }).length;
-      
-      // Count open incidents
-      const openIncidents = incidents.filter(inc => 
-        inc.status === 'SUBMITTED' || inc.status === 'UNDER_INVESTIGATION'
-      ).length;
-      // Transform to expected format
-      const dashboardData = {
-        total_incidents: stats.total || 0,
-        current_month_incidents: currentMonthIncidents,
-        open_incidents: openIncidents,
-        by_severity: stats.by_severity || {},
-        by_status: stats.by_status || {},
-        by_department: Object.entries(stats.by_department || {})
-          .map(([department, count]) => ({ department, count }))
-          .sort((a, b) => b.count - a.count)
-          .slice(0, 5)
-      };
-      console.log('✅ Analytics data loaded:', dashboardData);
-      setDashboard(dashboardData);
-    } catch (error) {
-      console.error('❌ Error fetching analytics:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const fetchAnalytics = async () => {
+      try {
+        // Use the statistics endpoint that we KNOW works
+        const [statsResponse, incidentsResponse] = await Promise.all([
+          api.get('/incidents/statistics/'),
+          api.get('/incidents/')
+        ]);
+        
+        const stats = statsResponse.data;
+        const incidents = incidentsResponse.data.results || [];
+        
+        // Calculate current month incidents
+        const now = new Date();
+        const currentMonthIncidents = incidents.filter(inc => {
+          const incDate = new Date(inc.created_at || inc.incident_date);
+          return incDate.getMonth() === now.getMonth() && 
+                 incDate.getFullYear() === now.getFullYear();
+        }).length;
+        
+        // Count open incidents
+        const openIncidents = incidents.filter(inc => 
+          inc.status === 'SUBMITTED' || inc.status === 'UNDER_INVESTIGATION'
+        ).length;
+        
+        // Transform to expected format
+        const dashboardData = {
+          total_incidents: stats.total || 0,
+          current_month_incidents: currentMonthIncidents,
+          open_incidents: openIncidents,
+          by_severity: stats.by_severity || {},
+          by_status: stats.by_status || {},
+          by_department: Object.entries(stats.by_department || {})
+            .map(([department, count]) => ({ department, count }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 5)
+        };
+        
+        console.log('✅ Analytics data loaded:', dashboardData);
+        setDashboard(dashboardData);
+      } catch (error) {
+        console.error('❌ Error fetching analytics:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
     fetchAnalytics();
   }, []);
@@ -139,49 +145,23 @@ const Analytics = () => {
             </div>
           </div>
 
-          {/* By Severity */}
+          {/* By Severity - NOW WITH PIE CHART! */}
           <div className="bg-white shadow rounded-lg p-6 mb-6">
             <h2 className="text-lg font-medium text-gray-900 mb-4">
               Incidents by Severity
             </h2>
-            <div className="space-y-3">
-              {dashboard?.by_severity &&
-                Object.entries(dashboard.by_severity).map(([severity, count]) => (
-                  <div key={severity} className="flex items-center">
-                    <div className="flex-1">
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm font-medium text-gray-700">
-                          {severity}
-                        </span>
-                        <span className="text-sm font-medium text-gray-700">
-                          {count}
-                        </span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className={`h-2 rounded-full ${
-                            severity === 'CRITICAL'
-                              ? 'bg-red-600'
-                              : severity === 'HIGH'
-                              ? 'bg-orange-500'
-                              : severity === 'MEDIUM'
-                              ? 'bg-yellow-500'
-                              : 'bg-green-500'
-                          }`}
-                          style={{
-                            width: `${
-                              (count / dashboard.total_incidents) * 100
-                            }%`,
-                          }}
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-            </div>
+            <IncidentsBySeverityChart data={dashboard?.by_severity} />
           </div>
 
-          {/* By Status */}
+          {/* Trends Over Time - NEW! */}
+          <div className="bg-white shadow rounded-lg p-6 mb-6">
+            <h2 className="text-lg font-medium text-gray-900 mb-4">
+              30-Day Trend
+            </h2>
+            <TrendsChart />
+          </div>
+
+          {/* By Status - KEEP AS IS */}
           <div className="bg-white shadow rounded-lg p-6 mb-6">
             <h2 className="text-lg font-medium text-gray-900 mb-4">
               Incidents by Status
@@ -202,24 +182,12 @@ const Analytics = () => {
             </div>
           </div>
 
-          {/* By Department */}
+          {/* By Department - NOW WITH BAR CHART! */}
           <div className="bg-white shadow rounded-lg p-6">
             <h2 className="text-lg font-medium text-gray-900 mb-4">
-              Top Departments
+              Incidents by Department
             </h2>
-            <div className="space-y-3">
-              {dashboard?.by_department &&
-                dashboard.by_department.slice(0, 5).map((dept) => (
-                  <div key={dept.department} className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700">
-                      {dept.department}
-                    </span>
-                    <span className="text-sm font-semibold text-gray-900">
-                      {dept.count} incidents
-                    </span>
-                  </div>
-                ))}
-            </div>
+            <IncidentsByDepartmentChart data={dashboard?.by_department} />
           </div>
         </div>
       </div>

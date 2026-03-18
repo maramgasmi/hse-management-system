@@ -2,24 +2,39 @@ import { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 import api from '../services/api';
 import { SEVERITY_COLORS, STATUS_COLORS } from '../utils/constants';
+import { PlusIcon } from '@heroicons/react/24/outline';  
+import CreateIncidentModal from '../components/CreateIncidentModal'; 
+import { useNavigate } from 'react-router-dom';   
 
 const Incidents = () => {
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
+  // Refresh function - can be called from modal
+  const refreshIncidents = async () => {
+  console.log('🔄 refreshIncidents called!');
+  setLoading(true);
+  try {
+    console.log('📡 Fetching incidents from API...');
+    // Add page_size parameter to get all incidents
+    const response = await api.get('/incidents/?page_size=100');  // ← CHANGE THIS LINE
+    console.log('✅ Got response:', response.data);
+    
+    const incidents = response.data.results || [];
+    console.log('📊 Setting incidents, count:', incidents.length);
+    
+    setIncidents(incidents);
+  } catch (error) {
+    console.error('❌ Error fetching incidents:', error);
+  } finally {
+    setLoading(false);
+  }
+};
 
+  // Initial load
   useEffect(() => {
-    const fetchIncidents = async () => {
-      try {
-        const response = await api.get('/incidents/');
-        setIncidents(response.data.results || []);
-      } catch (error) {
-        console.error('Error fetching incidents:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchIncidents();
+    refreshIncidents();
   }, []);
 
   if (loading) {
@@ -38,8 +53,19 @@ const Incidents = () => {
       <Navbar />
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">Incidents</h1>
+          {/* Header with Create Button */}
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold text-gray-900">Incidents</h1>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+            >
+              <PlusIcon className="h-5 w-5 mr-2" />
+              Create Incident
+            </button>
+          </div>
           
+          {/* Incidents Table */}
           <div className="bg-white shadow overflow-hidden sm:rounded-lg">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -96,6 +122,18 @@ const Incidents = () => {
           </div>
         </div>
       </div>
+
+      <CreateIncidentModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={() => {
+          // Force page refresh by navigating away and back
+          navigate('/dashboard');
+          setTimeout(() => {
+            navigate('/incidents');
+          }, 100);
+        }}
+      />
     </>
   );
 };

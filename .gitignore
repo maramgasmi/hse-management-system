@@ -80,6 +80,13 @@ docs/_build/
 installed_packages.txtm e d i a / 
 
 
-
+# Frontend (React)
+frontend/node_modules/
+frontend/build/
+frontend/.env
+frontend/.env.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
  
  
