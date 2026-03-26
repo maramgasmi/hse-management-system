@@ -1,41 +1,72 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import api from '../services/api';
 import { SEVERITY_COLORS, STATUS_COLORS } from '../utils/constants';
-import { PlusIcon } from '@heroicons/react/24/outline';  
-import CreateIncidentModal from '../components/CreateIncidentModal'; 
-import { useNavigate } from 'react-router-dom';   
+import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import CreateIncidentModal from '../components/CreateIncidentModal';
+import EditIncidentModal from '../components/EditIncidentModal';  // ← ADD THIS
+import toast from 'react-hot-toast';  // ← ADD THIS
 
 const Incidents = () => {
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedIncident, setSelectedIncident] = useState(null);
   const navigate = useNavigate();
+
   // Refresh function - can be called from modal
   const refreshIncidents = async () => {
-  console.log('🔄 refreshIncidents called!');
-  setLoading(true);
-  try {
-    console.log('📡 Fetching incidents from API...');
-    // Add page_size parameter to get all incidents
-    const response = await api.get('/incidents/?page_size=100');  // ← CHANGE THIS LINE
-    console.log('✅ Got response:', response.data);
-    
-    const incidents = response.data.results || [];
-    console.log('📊 Setting incidents, count:', incidents.length);
-    
-    setIncidents(incidents);
-  } catch (error) {
-    console.error('❌ Error fetching incidents:', error);
-  } finally {
-    setLoading(false);
-  }
-};
+    console.log('🔄 refreshIncidents called!');
+    setLoading(true);
+    try {
+      console.log('📡 Fetching incidents from API...');
+      const response = await api.get('/incidents/?page_size=100');
+      console.log('✅ Got response:', response.data);
+      
+      const incidents = response.data.results || [];
+      console.log('📊 Setting incidents, count:', incidents.length);
+      
+      setIncidents(incidents);
+    } catch (error) {
+      console.error('❌ Error fetching incidents:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Initial load
   useEffect(() => {
     refreshIncidents();
   }, []);
+
+  // DELETE HANDLER - ADD THIS FUNCTION HERE!
+  const handleDelete = async (incident) => {
+    // Show confirmation dialog
+    const confirmed = window.confirm(
+      `Are you sure you want to delete incident "${incident.title}"?\n\nThis action cannot be undone.`
+    );
+    
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await api.delete(`/incidents/${incident.id}/`);
+      toast.success('Incident deleted successfully! 🗑️');
+      
+      // Refresh the list
+      navigate('/dashboard');
+      setTimeout(() => {
+        navigate('/incidents');
+      }, 100);
+    } catch (error) {
+      console.error('Error deleting incident:', error);
+      const errorMsg = error.response?.data?.detail || 'Failed to delete incident';
+      toast.error(errorMsg);
+    }
+  };
 
   if (loading) {
     return (
@@ -85,6 +116,9 @@ const Incidents = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Date
                   </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -109,6 +143,25 @@ const Incidents = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {new Date(incident.incident_date).toLocaleDateString()}
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button
+                        onClick={() => {
+                          setSelectedIncident(incident);
+                          setIsEditModalOpen(true);
+                        }}
+                        className="text-primary-600 hover:text-primary-900 mr-4"
+                        title="Edit incident"
+                      >
+                        <PencilIcon className="h-5 w-5 inline" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(incident)}
+                        className="text-red-600 hover:text-red-900"
+                        title="Delete incident"
+                      >
+                        <TrashIcon className="h-5 w-5 inline" />
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -123,16 +176,32 @@ const Incidents = () => {
         </div>
       </div>
 
+      {/* Create Incident Modal */}
       <CreateIncidentModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSuccess={() => {
-          // Force page refresh by navigating away and back
           navigate('/dashboard');
           setTimeout(() => {
             navigate('/incidents');
           }, 100);
         }}
+      />
+
+      {/* Edit Incident Modal - ADD THIS! */}
+      <EditIncidentModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedIncident(null);
+        }}
+        onSuccess={() => {
+          navigate('/dashboard');
+          setTimeout(() => {
+            navigate('/incidents');
+          }, 100);
+        }}
+        incident={selectedIncident}
       />
     </>
   );

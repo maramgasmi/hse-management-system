@@ -81,8 +81,6 @@ class IncidentDetailSerializer(IncidentBaseValidationSerializer):
         read_only_fields = ['id', 'reference', 'reported_date', 'created_at', 'updated_at']
 
 
-# incidents/serializers.py
-# ... (keep all existing code until IncidentCreateUpdateSerializer)
 
 class IncidentCreateUpdateSerializer(IncidentBaseValidationSerializer):
     """Serializer for creating/updating. Inherits base validation."""
@@ -95,6 +93,7 @@ class IncidentCreateUpdateSerializer(IncidentBaseValidationSerializer):
             'severity',
             'incident_date',
             'location', 
+            'status',
             'department', 
             'assigned_to', 
             'injuries', 
