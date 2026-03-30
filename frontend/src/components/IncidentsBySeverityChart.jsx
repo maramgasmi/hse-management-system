@@ -1,13 +1,14 @@
+import { memo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
 const COLORS = {
-  LOW: '#22c55e',      // green
-  MEDIUM: '#eab308',   // yellow
-  HIGH: '#f97316',     // orange
-  CRITICAL: '#ef4444'  // red
+  LOW: '#22c55e',
+  MEDIUM: '#eab308',
+  HIGH: '#f97316',
+  CRITICAL: '#ef4444'
 };
 
-const IncidentsBySeverityChart = ({ data }) => {
+const IncidentsBySeverityChart = memo(({ data }) => {
   if (!data || Object.keys(data).length === 0) {
     return (
       <div className="flex items-center justify-center h-64 text-gray-400">
@@ -16,7 +17,6 @@ const IncidentsBySeverityChart = ({ data }) => {
     );
   }
 
-  // Transform data for pie chart
   const chartData = Object.entries(data).map(([severity, count]) => ({
     name: severity,
     value: count,
@@ -45,6 +45,8 @@ const IncidentsBySeverityChart = ({ data }) => {
       </PieChart>
     </ResponsiveContainer>
   );
-};
+});
+
+IncidentsBySeverityChart.displayName = 'IncidentsBySeverityChart';
 
 export default IncidentsBySeverityChart;

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
+import PerformanceMonitor from '../components/PerformanceMonitor'; // Import confirmed
 import api from '../services/api';
 import { 
   DocumentTextIcon, 
@@ -73,6 +74,7 @@ const Dashboard = () => {
   if (loading) {
     return (
       <>
+        <PerformanceMonitor pageName="Dashboard" /> {/* Added at top of loading return */}
         <Navbar />
         <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="px-4 py-6 sm:px-0">
@@ -95,6 +97,7 @@ const Dashboard = () => {
 
   return (
     <>
+      <PerformanceMonitor pageName="Dashboard" /> {/* Added at top of main return */}
       <Navbar />
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">

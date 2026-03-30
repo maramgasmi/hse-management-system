@@ -1,9 +1,10 @@
+import { memo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useEffect, useState } from 'react';
 import api from '../services/api';
 import { format, subDays } from 'date-fns';
 
-const TrendsChart = () => {
+const TrendsChart = memo(() => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -13,7 +14,6 @@ const TrendsChart = () => {
         const response = await api.get('/incidents/');
         const incidents = response.data.results || [];
         
-        // Group by date (last 30 days)
         const last30Days = Array.from({ length: 30 }, (_, i) => {
           const date = subDays(new Date(), 29 - i);
           return {
@@ -23,7 +23,6 @@ const TrendsChart = () => {
           };
         });
 
-        // Count incidents per day
         incidents.forEach(incident => {
           const incidentDate = format(new Date(incident.incident_date), 'yyyy-MM-dd');
           const dayData = last30Days.find(d => d.fullDate === incidentDate);
@@ -74,6 +73,8 @@ const TrendsChart = () => {
       </LineChart>
     </ResponsiveContainer>
   );
-};
+});
+
+TrendsChart.displayName = 'TrendsChart';
 
 export default TrendsChart;

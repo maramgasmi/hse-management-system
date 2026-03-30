@@ -1,5 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import Navbar from '../components/Navbar';
+import PerformanceMonitor from '../components/PerformanceMonitor'; // Added Import
+import { useDebounce } from '../hooks/useDebounce';
 import api from '../services/api';
 import { SEVERITY_COLORS, STATUS_COLORS } from '../utils/constants';
 import CreateIncidentModal from '../components/CreateIncidentModal';
@@ -118,6 +120,7 @@ const Incidents = () => {
 
   // Filter States
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [severityFilter, setSeverityFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('');
@@ -142,49 +145,19 @@ const Incidents = () => {
     refreshIncidents();
   }, []);
 
-  const activeFiltersCount = [
-    searchTerm !== '',
-    severityFilter !== '',
-    statusFilter !== '',
-    departmentFilter !== ''
-  ].filter(Boolean).length;
-
-  const clearFilters = () => {
+  // Memoize callbacks
+  const clearFilters = useCallback(() => {
     setSearchTerm('');
     setSeverityFilter('');
     setStatusFilter('');
     setDepartmentFilter('');
-  };
+  }, []);
 
-  // --- Keyboard Shortcuts Effect ---
-  useEffect(() => {
-    const handleKeyPress = (e) => {
-      // Cmd/Ctrl + K: Focus search
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        document.querySelector('input[placeholder*="Search"]')?.focus();
-      }
-      
-      // Cmd/Ctrl + N: New incident
-      if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
-        e.preventDefault();
-        setIsModalOpen(true);
-      }
-      
-      // Escape: Clear filters
-      if (e.key === 'Escape' && activeFiltersCount > 0) {
-        clearFilters();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [activeFiltersCount]);
-
-  const handleDelete = async (incident) => {
+  const handleDelete = useCallback(async (incident) => {
     const confirmed = window.confirm(
       `Are you sure you want to delete incident "${incident.title}"?\n\nThis action cannot be undone.`
     );
+    
     if (!confirmed) return;
 
     try {
@@ -192,68 +165,110 @@ const Incidents = () => {
       toast.success('Incident deleted successfully! 🗑️');
       refreshIncidents();
     } catch (error) {
+      console.error('Error deleting incident:', error);
       const errorMsg = error.response?.data?.detail || 'Failed to delete incident';
       toast.error(errorMsg);
     }
-  };
+  }, []);
 
-  const filteredIncidents = incidents.filter(incident => {
-    const matchesSearch = searchTerm === '' || 
-      incident.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      incident.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      incident.reference?.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesSeverity = severityFilter === '' || incident.severity === severityFilter;
-    const matchesStatus = statusFilter === '' || incident.status === statusFilter;
-    const matchesDepartment = departmentFilter === '' || 
-      incident.department?.toLowerCase().includes(departmentFilter.toLowerCase());
-
-    return matchesSearch && matchesSeverity && matchesStatus && matchesDepartment;
-  });
-
-  const sortedAndFilteredIncidents = [...filteredIncidents].sort((a, b) => {
-    let aValue = a[sortField];
-    let bValue = b[sortField];
-
-    if (sortField === 'incident_date' || sortField === 'created_at') {
-      aValue = new Date(aValue);
-      bValue = new Date(bValue);
-    }
-
-    if (typeof aValue === 'string') {
-      aValue = aValue.toLowerCase();
-      bValue = bValue.toLowerCase();
-    }
-
-    if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-    if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
-    return 0;
-  });
-
-  const handleSort = (field) => {
+  const handleSort = useCallback((field) => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
       setSortField(field);
       setSortDirection('asc');
     }
-  };
+  }, [sortField, sortDirection]);
 
-  const SortIcon = ({ field }) => {
-    if (sortField !== field) return <span className="text-gray-400">↕</span>;
-    return <span className="text-primary-600">{sortDirection === 'asc' ? '↑' : '↓'}</span>;
-  };
+  // Memoize active filters count
+  const activeFiltersCount = useMemo(() => {
+    return [
+      debouncedSearchTerm !== '',
+      severityFilter !== '',
+      statusFilter !== '',
+      departmentFilter !== ''
+    ].filter(Boolean).length;
+  }, [debouncedSearchTerm, severityFilter, statusFilter, departmentFilter]);
 
-  const exportToCSV = () => {
-    const headers = ['Reference', 'Title', 'Severity', 'Status', 'Date', 'Location', 'Department'];
+  // --- Keyboard Shortcuts Effect ---
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        document.querySelector('input[placeholder*="Search"]')?.focus();
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
+        e.preventDefault();
+        setIsModalOpen(true);
+      }
+      if (e.key === 'Escape' && activeFiltersCount > 0) {
+        clearFilters();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [activeFiltersCount, clearFilters]);
+
+  // Memoize filtered incidents
+  const filteredIncidents = useMemo(() => {
+    return incidents.filter(incident => {
+      const matchesSearch = debouncedSearchTerm === '' ||   
+        incident.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        incident.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        incident.reference?.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesSeverity = severityFilter === '' || incident.severity === severityFilter;
+      const matchesStatus = statusFilter === '' || incident.status === statusFilter;
+      const matchesDepartment = departmentFilter === '' || 
+        incident.department?.toLowerCase().includes(departmentFilter.toLowerCase());
+
+      return matchesSearch && matchesSeverity && matchesStatus && matchesDepartment;
+    });
+  }, [incidents, searchTerm, debouncedSearchTerm, severityFilter, statusFilter, departmentFilter]); 
+
+  // Memoize sorted and filtered incidents
+  const sortedAndFilteredIncidents = useMemo(() => {
+    return [...filteredIncidents].sort((a, b) => {
+      let aValue = a[sortField];
+      let bValue = b[sortField];
+
+      if (sortField === 'incident_date' || sortField === 'created_at') {
+        aValue = new Date(aValue);
+        bValue = new Date(bValue);
+      }
+
+      if (typeof aValue === 'string') {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [filteredIncidents, sortField, sortDirection]);
+
+  // Memoize export
+  const exportToCSV = useCallback(() => {
+    const headers = [
+      'Reference', 'Title', 'Description', 'Type', 'Severity', 'Status',
+      'Date', 'Location', 'Department', 'Injuries', 'Work Hours Lost', 'Days Lost'
+    ];
+
     const rows = sortedAndFilteredIncidents.map(incident => [
       incident.reference || '',
       incident.title || '',
+      incident.description?.replace(/,/g, ';') || '',
+      incident.incident_type || '',
       incident.severity || '',
       incident.status || '',
       incident.incident_date || '',
       incident.location || '',
-      incident.department || ''
+      incident.department || '',
+      incident.injuries || '',
+      incident.work_hours_lost || 0,
+      incident.days_lost || 0
     ]);
 
     const csvContent = [
@@ -263,15 +278,28 @@ const Incidents = () => {
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
     link.setAttribute('download', `incidents_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
     link.click();
-    toast.success('Exported successfully! 📊');
+    document.body.removeChild(link);
+
+    toast.success(`Exported ${sortedAndFilteredIncidents.length} incidents to CSV! 📊`);
+  }, [sortedAndFilteredIncidents]);
+
+  const SortIcon = ({ field }) => {
+    if (sortField !== field) return <span className="text-gray-400">↕</span>;
+    return <span className="text-primary-600">{sortDirection === 'asc' ? '↑' : '↓'}</span>;
   };
 
   if (loading) {
     return (
       <>
+        <PerformanceMonitor pageName="Incidents" /> {/* Added to loading path */}
         <Navbar />
         <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="px-4 py-6 sm:px-0">
@@ -296,6 +324,7 @@ const Incidents = () => {
 
   return (
     <>
+      <PerformanceMonitor pageName="Incidents" /> {/* Added to main path */}
       <Navbar />
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
@@ -399,7 +428,7 @@ const Incidents = () => {
             </div>
           </div>
 
-          {/* 1. Desktop Table View */}
+          {/* Desktop Table View */}
           <div className="hidden md:block bg-white shadow overflow-hidden sm:rounded-lg border border-gray-200">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -456,7 +485,7 @@ const Incidents = () => {
             )}
           </div>
 
-          {/* 2. Mobile Card View */}
+          {/* Mobile Card View */}
           <div className="md:hidden space-y-4">
             {sortedAndFilteredIncidents.length > 0 ? (
               sortedAndFilteredIncidents.map((incident) => (

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
+import PerformanceMonitor from '../components/PerformanceMonitor'; // Added Import
 import api from '../services/api';
 import IncidentsByDepartmentChart from '../components/IncidentsByDepartmentChart';
 import IncidentsBySeverityChart from '../components/IncidentsBySeverityChart';
@@ -67,6 +68,7 @@ const Analytics = () => {
   if (loading) {
     return (
       <>
+        <PerformanceMonitor pageName="Analytics" /> {/* Added to loading path */}
         <Navbar />
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
@@ -77,6 +79,7 @@ const Analytics = () => {
 
   return (
     <>
+      <PerformanceMonitor pageName="Analytics" /> {/* Added to main path */}
       <Navbar />
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
@@ -145,7 +148,7 @@ const Analytics = () => {
             </div>
           </div>
 
-          {/* By Severity - NOW WITH PIE CHART! */}
+          {/* Charts Section */}
           <div className="bg-white shadow rounded-lg p-6 mb-6">
             <h2 className="text-lg font-medium text-gray-900 mb-4">
               Incidents by Severity
@@ -153,7 +156,6 @@ const Analytics = () => {
             <IncidentsBySeverityChart data={dashboard?.by_severity} />
           </div>
 
-          {/* Trends Over Time - NEW! */}
           <div className="bg-white shadow rounded-lg p-6 mb-6">
             <h2 className="text-lg font-medium text-gray-900 mb-4">
               30-Day Trend
@@ -161,7 +163,6 @@ const Analytics = () => {
             <TrendsChart />
           </div>
 
-          {/* By Status - KEEP AS IS */}
           <div className="bg-white shadow rounded-lg p-6 mb-6">
             <h2 className="text-lg font-medium text-gray-900 mb-4">
               Incidents by Status
@@ -182,7 +183,6 @@ const Analytics = () => {
             </div>
           </div>
 
-          {/* By Department - NOW WITH BAR CHART! */}
           <div className="bg-white shadow rounded-lg p-6">
             <h2 className="text-lg font-medium text-gray-900 mb-4">
               Incidents by Department

@@ -24,7 +24,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "analyze": "npx cra-bundle-analyzer"
   },
   "eslintConfig": {
     "extends": [
@@ -46,7 +47,10 @@
   },
   "devDependencies": {
     "autoprefixer": "^10.4.17",
+    "cra-bundle-analyzer": "^0.1.1",
     "postcss": "^8.4.35",
-    "tailwindcss": "^3.4.1"
+    "source-map-explorer": "^2.5.3",
+    "tailwindcss": "^3.4.1",
+    "webpack-bundle-analyzer": "^5.3.0"
   }
 }
