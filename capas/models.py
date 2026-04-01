@@ -30,6 +30,30 @@ class CAPA(models.Model):
         (TYPE_CORRECTIVE, 'Corrective Action - Fix the problem'),
         (TYPE_PREVENTIVE, 'Preventive Action - Prevent recurrence'),
     ]
+
+    # ============================================
+    # HIERARCHY OF CONTROLS (ISO 45001 Requirement)
+    # ============================================
+    CONTROL_ELIMINATION = 'ELIMINATION'
+    CONTROL_SUBSTITUTION = 'SUBSTITUTION'
+    CONTROL_ENGINEERING = 'ENGINEERING'
+    CONTROL_ADMINISTRATIVE = 'ADMINISTRATIVE'
+    CONTROL_PPE = 'PPE'
+
+    CONTROL_HIERARCHY_CHOICES = [
+        (CONTROL_ELIMINATION, 'Elimination - Remove the hazard'),
+        (CONTROL_SUBSTITUTION, 'Substitution - Replace the hazard'),
+        (CONTROL_ENGINEERING, 'Engineering - Isolate people from hazard'),
+        (CONTROL_ADMINISTRATIVE, 'Administrative - Change the way people work'),
+        (CONTROL_PPE, 'PPE - Protect worker with equipment'),
+    ]
+
+    control_hierarchy = models.CharField(
+        max_length=20,
+        choices=CONTROL_HIERARCHY_CHOICES,
+        default=CONTROL_ADMINISTRATIVE,
+        help_text="Hierarchy of control level (ISO 45001 Requirement)"
+    )
     
     # ============================================
     # STATUS CHOICES

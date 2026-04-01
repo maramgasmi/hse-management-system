@@ -62,3 +62,73 @@ api.interceptors.response.use(
 );
 
 export default api;
+
+// ============================================================
+// EVIDENCE / ATTACHMENTS API FUNCTIONS
+// These are named exports so individual components can import
+// only the function they need (tree-shaking friendly).
+// ============================================================
+
+/**
+ * Upload a single file as evidence for a given incident.
+ */
+export const uploadEvidence = (incidentId, file, onProgress) => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  return api.post(`/incidents/${incidentId}/add_evidence/`, formData, {
+    onUploadProgress: (progressEvent) => {
+      const percentage = Math.round(
+        (progressEvent.loaded * 100) / progressEvent.total
+      );
+      if (onProgress) onProgress(percentage);
+    },
+  });
+};
+
+/**
+ * Fetch the list of evidence attached to a specific incident.
+ */
+export const fetchEvidence = (incidentId) =>
+  api.get(`/incidents/${incidentId}/evidence/`);
+
+/**
+ * Delete a specific evidence item by its own ID.
+ */
+export const deleteEvidence = (evidenceId) =>
+  api.delete(`/evidence/${evidenceId}/`);
+
+/**
+ * Export all incidents as a PDF report.
+ * Since we need to pass the Authorization header, we fetch as a blob.
+ */
+export const exportIncidentsPdf = async () => {
+  try {
+    const response = await api.get('/incidents/export-pdf/', {
+      responseType: 'blob',
+      headers: {
+        'Accept': 'application/pdf'
+      }
+    });
+    
+    // Create a URL for the blob
+    const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+    const link = document.createElement('a');
+    link.href = url;
+    
+    // Set filename
+    const dateStr = new Date().toISOString().split('T')[0];
+    link.setAttribute('download', `HSE_Audit_Registry_${dateStr}.pdf`);
+    
+    // Trigger download
+    document.body.appendChild(link);
+    link.click();
+    
+    // Cleanup
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('PDF Export failed:', error);
+    throw error;
+  }
+};

@@ -1,16 +1,16 @@
 {% extends 'emails/base_email.html' %}
 
 {% block content %}
-<h2>✅ Incident Validated</h2>
+<h2>Governance Validation Complete</h2>
 
-<p>Hello {{ recipient_name }},</p>
+<p>Hello <strong>{{ recipient_name }}</strong>,</p>
 
-<p>Your reported incident has been validated by the HSE team.</p>
+<p>Your reported incident has been formally reviewed and validated by the SafetyFirst HSE team. The documentation phase is now complete and closed in our registry.</p>
 
 <div class="info-box">
     <div class="info-row">
-        <span class="info-label">Reference:</span>
-        <span class="info-value"><strong>{{ incident.reference }}</strong></span>
+        <span class="info-label">Reference ID:</span>
+        <span class="info-value"><strong style="color: #3498DB;">#{{ incident.reference }}</strong></span>
     </div>
     <div class="info-row">
         <span class="info-label">Title:</span>
@@ -18,22 +18,23 @@
     </div>
     <div class="info-row">
         <span class="info-label">Status:</span>
-        <span class="info-value">✅ Validated</span>
+        <span class="info-value" style="color: #10B981; font-weight: 800; font-size: 11px;">VALIDATED PROTOTYPE</span>
     </div>
     <div class="info-row">
-        <span class="info-label">Validated by:</span>
-        <span class="info-value">{{ validated_by }}</span>
+        <span class="info-label">Assigned Lead:</span>
+        <span class="info-value">{{ incident.assigned_to.get_full_name|default:incident.assigned_to.username }}</span>
     </div>
 </div>
 
-<p>
-    Thank you for your vigilance in reporting this incident. 
-    Your contribution helps maintain a safe working environment for everyone.
+<p style="background-color: #10B98120; color: #10B981; padding: 15px; border-radius: 8px; border-left: 3px solid #10B981; font-weight: 700; font-size: 13px;">
+    Thank you for your vigilance. By following the reporting protocol, you have directly contributed to our workplace safety and ISO compliance maturity.
 </p>
 
-<a href="http://localhost:3000/incidents/{{ incident.id }}" class="button">
-    View Details
-</a>
+<div style="text-align: center; margin-top: 35px;">
+    <a href="http://localhost:3000/incidents" style="display: inline-block;" class="button">
+        GO TO REPOSITORY
+    </a>
+</div>
 
-<p>If you have any additional information about this incident, please update the incident report.</p>
+<p style="font-size: 12px; color: #6B7280; font-style: italic; margin-top: 30px;">This automated record is kept for historical audit purposes and legal compliance tracking.</p>
 {% endblock %}

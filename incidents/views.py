@@ -4,7 +4,15 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
-from drf_spectacular.utils import extend_schema
+from django.http import HttpResponse
+from django.db.models import Count, Sum
+import io
+from reportlab.lib.pagesizes import letter, landscape
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
+from reportlab.lib.units import inch
+from rest_framework.renderers import BaseRenderer, JSONRenderer
 
 from .tasks import send_incident_notification
 from .filters import IncidentFilter

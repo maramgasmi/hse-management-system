@@ -9,87 +9,7 @@ from .emails import (
     send_incident_validated_email,
     send_daily_report_email,
 )
-@shared_task(bind=True, max_retries=3)
-def send_incident_notification(self, incident_id, notification_type):
-    """
-    Send email notification for incident
-    
-    Args:
-        incident_id: Incident ID
-        notification_type: Type of notification (created, assigned, validated, etc.)
-    
-    This task runs in background and can retry on failure
-    """
-    try:
-        from .models import Incident
-        
-        incident = Incident.objects.get(id=incident_id)
-        
-        # Determine recipient and subject based on type
-        if notification_type == 'created':
-            recipient = incident.reporter.email
-            subject = f'Incident {incident.reference} Created'
-            message = f'''
-            Your incident has been created successfully.
-            
-            Reference: {incident.reference}
-            Title: {incident.title}
-            Severity: {incident.get_severity_display()}
-            Status: {incident.get_status_display()}
-            
-            You can view it at: http://localhost:3000/incidents/{incident.id}
-            '''
-        
-        elif notification_type == 'assigned':
-            if not incident.assigned_to:
-                return
-            recipient = incident.assigned_to.email
-            subject = f'Incident {incident.reference} Assigned to You'
-            message = f'''
-            You have been assigned to investigate incident {incident.reference}.
-            
-            Title: {incident.title}
-            Severity: {incident.get_severity_display()}
-            Location: {incident.location}
-            
-            Please review and take action.
-            '''
-        
-        elif notification_type == 'validated':
-            recipient = incident.reporter.email
-            subject = f'Incident {incident.reference} Validated'
-            message = f'''
-            Your incident has been validated.
-            
-            Reference: {incident.reference}
-            Title: {incident.title}
-            
-            Thank you for reporting.
-            '''
-        
-        else:
-            return
-        
-        # Send email 
-        print(f"📧 Sending email to {recipient}")
-        print(f"Subject: {subject}")
-        print(f"Message: {message}")
-        
-        
-        send_mail(
-             subject=subject,
-             message=message,
-             from_email=settings.DEFAULT_FROM_EMAIL,
-             recipient_list=[recipient],
-             fail_silently=False,
-         )
-        
-        return f"Email sent to {recipient}"
-        
-    except Exception as exc:
-        # Retry task if it fails (max 3 times)
-        print(f"❌ Task failed: {exc}")
-        raise self.retry(exc=exc, countdown=60)  # Retry after 60 seconds
+# [Removed redundant task definition: now using the one at the end of the file with HTML support]
 
 @shared_task
 def generate_daily_incident_report():
@@ -350,14 +270,13 @@ def calculate_safety_metrics():
 
 
 @shared_task(bind=True, max_retries=3)
-def send_incident_notification(self, incident_id, notification_type):
+def send_incident_notification(self, incident_id, notification_type, user_id=None):
     """
-    Send email notification for incident
-    
-    Now uses beautiful HTML templates!
+    Send email notification for incident using HTML templates.
     """
     try:
         from .models import Incident
+        from django.contrib.auth.models import User
         
         incident = Incident.objects.get(id=incident_id)
         
@@ -370,8 +289,16 @@ def send_incident_notification(self, incident_id, notification_type):
             return f"Assignment email sent: {result}"
         
         elif notification_type == 'validated':
-            # Need validated_by user - for now use reporter
-            result = send_incident_validated_email(incident, incident.reporter)
+            validator = None
+            if user_id:
+                try: 
+                    validator = User.objects.get(id=user_id)
+                except User.DoesNotExist: 
+                    pass
+            
+            # Fallback to current assigned user if no explicit validator passed
+            validated_by = validator or incident.assigned_to or incident.reporter
+            result = send_incident_validated_email(incident, validated_by)
             return f"Validation email sent: {result}"
         
         return "Unknown notification type"

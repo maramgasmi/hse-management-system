@@ -205,6 +205,11 @@ class Incident(models.Model):
     )
     # Only if there was damage
     
+    has_property_damage = models.BooleanField(
+        default=False,
+        help_text="Was there any damage to property or equipment?"
+    )
+    
     work_hours_lost = models.PositiveIntegerField(
         default=0,
         validators=[MinValueValidator(0)],
@@ -217,6 +222,36 @@ class Incident(models.Model):
         default=0,
         validators=[MinValueValidator(0)],
         help_text="Total work days lost due to incident"
+    )
+
+    # ============================================
+    # INVESTIGATION & RCA FIELDS (ISO 45001)
+    # ============================================
+    
+    root_cause_category = models.CharField(
+        max_length=50,
+        blank=True,
+        choices=[
+            ('HUMAN_ERROR', 'Human Error / Unsafe Act'),
+            ('EQUIPMENT_FAILURE', 'Equipment/Tool Failure'),
+            ('PROCESS_GAP', 'Process/Procedure Gap'),
+            ('ENVIRONMENTAL_FACTOR', 'External/Environmental Factor'),
+            ('MANAGEMENT_FAILURE', 'Management/Supervisory Failure'),
+            ('TRAINING_GAP', 'Lack of Training/Competence'),
+        ],
+        help_text="Categorization for root cause analysis"
+    )
+    
+    root_cause_description = models.TextField(
+        blank=True,
+        help_text="Detailed investigation findings and 5-Whys summary"
+    )
+    
+    estimated_cost = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0.00,
+        help_text="Estimated financial impact (Direct + Indirect)"
     )
     # For calculating severity rate (Taux de Gravité)
     # Important KPI for HSE management

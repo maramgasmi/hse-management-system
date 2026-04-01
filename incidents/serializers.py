@@ -61,7 +61,7 @@ class IncidentListSerializer(serializers.ModelSerializer):
             'id', 'reference', 'title', 'incident_type', 'incident_type_display',
             'severity', 'severity_display', 'status', 'status_display',
             'incident_date', 'location', 'department', 'reporter', 
-            'assigned_to', 'created_at',
+            'assigned_to', 'risk_assessment', 'created_at',
         ]
         read_only_fields = ['id', 'reference', 'created_at']
 
@@ -70,6 +70,8 @@ class IncidentDetailSerializer(IncidentBaseValidationSerializer):
     """Serializer for single incident view. Inherits base validation."""
     reporter = UserSerializer(read_only=True)
     assigned_to = UserSerializer(read_only=True)
+    risk_assessment = RiskAssessmentSerializer(read_only=True)
+    capas = CAPAListSerializer(many=True, read_only=True)
     
     severity_display = serializers.CharField(source='get_severity_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
@@ -97,9 +99,13 @@ class IncidentCreateUpdateSerializer(IncidentBaseValidationSerializer):
             'department', 
             'assigned_to', 
             'injuries', 
+            'has_property_damage',
             'property_damage', 
             'work_hours_lost', 
             'days_lost',
+            'root_cause_category',
+            'root_cause_description',
+            'estimated_cost',
         ]
         # ✅ REMOVED 'status' from read_only_fields
         # Status will use model's default value

@@ -1,0 +1,154 @@
+{
+  "sidebar": {
+    "dashboard": "لوحة القيادة",
+    "incidents": "سجل الحوادث",
+    "analytics": "الأداء والمخاطر",
+    "logout": "تسجيل الخروج",
+    "user_profile": "الملف الشخصي",
+    "settings": "إعدادات النظام",
+    "report_incident": "تبليغ عن حادث"
+  },
+  "dashboard": {
+    "title": "القيادة العملياتية للصحة والسلامة",
+    "subtitle": "نظرة عامة على أداء السلامة ومقاييس المخاطر.",
+    "kpi": {
+      "trir": "معدل الإصابات (TRIR)",
+      "ltifr": "معدل الحوادث المهدرة للوقت (LTIFR)",
+      "lti_count": "إجمالي الحوادث المهدرة للوقت",
+      "near_misses": "وشيك الوقوع",
+      "days_lost": "الأيام المفقودة",
+      "open_incidents": "الحالات النشطة"
+    },
+    "charts": {
+       "dept_breakdown": "الحوادث حسب القسم",
+       "severity_mix": "تحليل درجة الخطورة",
+       "monthly_trend": "اتجاه الحوادث (30 يوماً)",
+       "risk_matrix": "مصفوفة تقييم المخاطر",
+       "status_breakdown": "توزيع حالات الحوادث",
+       "rca_pareto": "تحليل الأسباب الجذرية (باريتو)"
+    },
+    "likelihood": "الاحتمالية",
+    "impact": "الأثر / النتيجة",
+    "risk_heatmap_title": "ضوابط التخفيف",
+    "risk_heatmap_sub": "تقييم المخاطر المتوافق مع ISO لهذا الحدث."
+  },
+  "common": {
+    "severity": "الخطورة",
+    "status": "الحالة",
+    "department": "القسم",
+    "date": "التاريخ",
+    "location": "الموقع / المنطقة",
+    "title": "العنوان",
+    "actions": "الإجراءات",
+    "search": "بحث في السجل...",
+    "reference": "رقم المرجع",
+    "general_info": "المعلومات العامة",
+    "investigation": "التحقيق وتحليل الأسباب",
+    "save": "حفظ",
+    "save_changes": "حفظ التغييرات",
+    "cancel": "إلغاء",
+    "close": "إغلاق",
+    "processing": "جاري المعالجة...",
+    "evidence": "الأدلة والمرفقات",
+    "all": "الكل",
+    "pdf_report": "تصدير PDF",
+    "view": "عرض",
+    "due": "الاستحقاق",
+    "success": "تمت العملية بنجاح",
+    "error": "حدث خطأ ما"
+  },
+  "status": {
+    "DRAFT": "مسودة",
+    "SUBMITTED": "تم التقديم",
+    "UNDER_INVESTIGATION": "قيد التحقيق",
+    "VALIDATED": "تم التحقق",
+    "CLOSED": "مغلق",
+    "OPEN": "مفتوح"
+  },
+  "severity_levels": {
+    "LOW": "منخفض",
+    "MEDIUM": "متوسط",
+    "HIGH": "مرتفع",
+    "CRITICAL": "حرج",
+    "CRITICAL_RISK": "مخاطر حرجة",
+    "HIGH_RISK": "مخاطر عالية",
+    "MEDIUM_RISK": "مخاطر متوسطة",
+    "LOW_RISK": "مخاطر منخفضة"
+  },
+  "risk": {
+     "CRITICAL": "مخاطر حرجة",
+     "HIGH": "مخاطر عالية",
+     "MEDIUM": "مخاطر متوسطة",
+     "LOW": "مخاطر منخفضة",
+     "VERY_LOW": "مخاطر منخفضة جداً"
+  },
+  "incident_log": {
+     "page_title": "سجل الحوادث والقضايا",
+     "subtitle": "سجل شامل لجميع وقائع الصحة والسلامة والبيئة المبلغ عنها.",
+     "filters": "تصفية السجل",
+     "view_details": "عرض التفاصيل",
+     "security_governance": "سجل حوكمة الأمن",
+     "active_actions": "إجراءات تصحيحية نشطة ({{count}})",
+     "columns": {
+        "REF": "المرجع",
+        "DATE": "التاريخ",
+        "TITLE": "وصف الحادث",
+        "SEV": "الخطورة",
+        "STATUS": "الحالة",
+        "DEPT": "القسم"
+     }
+  },
+  "forms": {
+    "incident_title": "عنوان الحادث",
+    "title": "عنوان الإجراء",
+    "description": "الوصف",
+    "incident_type": "نوع الحادث",
+    "severity": "الخطورة",
+    "status": "الحالة",
+    "incident_date": "تاريخ الحادث",
+    "location": "الموقع / المنطقة",
+    "department": "القسم",
+    "assigned_to": "مكلف بـ",
+    "injuries": "الإصابات المبلغ عنها",
+    "has_property_damage": "أضرار ممتلكات؟",
+    "property_damage": "تفاصيل أضرار الممتلكات",
+    "hrs_lost": "الساعات المفقودة",
+    "days_lost": "الأيام المفقودة",
+    "submit": "تقديم السجل",
+    "cancel": "إلغاء",
+    "due_date": "تاريخ الاستحقاق",
+    "priority": "الأولويّة",
+    "root_cause_category": "فئة الأسباب الجذرية",
+    "root_cause_description": "تحليل الأسباب الجذرية",
+    "estimated_cost": "الأثر المالي التقديري (Dinar TND)",
+    "mandatory": "الحقول المطلوبة",
+    "optional": "تفاصيل اختيارية / الأثر",
+    "hierarchy_of_control": "تسلسل ضوابط التحكم",
+    "tabs": {
+       "general": "عام",
+       "investigation": "التحقيق"
+    },
+    "hierarchy_of_control_options": {
+       "ELIMINATION": "1. الإزالة",
+       "SUBSTITUTION": "2. الاستبدال",
+       "ENGINEERING": "3. ضوابط هندسية",
+       "ADMINISTRATIVE": "4. ضوابط إدارية",
+       "PPE": "5. معدات الوقاية الشخصية"
+    }
+  },
+  "incident_types": {
+     "ACCIDENT": "حادث",
+     "NEAR_MISS": "وشيك الوقوع",
+     "UNSAFE_CONDITION": "حالة غير آمنة",
+     "FIRST_AID": "إسعافات أولية",
+     "ENVIRONMENTAL": "بيئي"
+  },
+  "rca_categories": {
+     "HUMAN_ERROR": "خطأ بشري / فعل غير آمن",
+     "EQUIPMENT_FAILURE": "فشل المعدات / الأدوات",
+     "PROCESS_GAP": "فجوة في سير العمل",
+     "ENVIRONMENTAL_FACTOR": "عوامل بيئية",
+     "MANAGEMENT_FAILURE": "فشل إداري / إشرافي",
+     "TRAINING_GAP": "نقص التدريب"
+  }
+}

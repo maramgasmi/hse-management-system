@@ -9,15 +9,15 @@ class RiskAssessmentSerializer(serializers.ModelSerializer):
     
     @extend_schema_field(serializers.CharField()) 
     def get_risk_display(self, obj):
-        return obj.risk_display()
+        return obj.get_risk_display()
 
     @extend_schema_field(serializers.CharField()) 
     def get_risk_color(self, obj):
-        return obj.risk_color()
+        return obj.get_risk_color()
         
     @extend_schema_field(serializers.BooleanField()) 
     def get_requires_management_review(self, obj):
-        return obj.get_requires_management_review()
+        return obj.requires_management_review()
     
     assessed_by = UserBasicSerializer(read_only=True)
     

@@ -26,6 +26,7 @@ class CAPAListSerializer(serializers.ModelSerializer):
             'incident',
             'action_type',
             'action_type_display',
+            'control_hierarchy',
             'title',
             'status',
             'status_display',
@@ -113,6 +114,7 @@ class CAPACreateUpdateSerializer(serializers.ModelSerializer):
         fields = [
             'incident',
             'action_type',
+            'control_hierarchy',
             'title',
             'description',
             'root_cause',

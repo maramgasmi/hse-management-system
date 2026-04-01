@@ -1,0 +1,157 @@
+{
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "incidents": "Incident Log",
+    "analytics": "Performance & Risk",
+    "logout": "Logout",
+    "user_profile": "User Profile",
+    "settings": "System Settings",
+    "report_incident": "Report Incident"
+  },
+  "dashboard": {
+    "title": "HSE Operational Command",
+    "subtitle": "Overview of safety performance and risk metrics.",
+    "kpi": {
+      "trir": "TRIR (Recordable Rate)",
+      "ltifr": "LTIFR (Lost Time Rate)",
+      "lti_count": "Total LTI Count",
+      "near_misses": "Near Misses",
+      "days_lost": "Days Lost",
+      "open_incidents": "Open Incidents",
+      "total_incidents": "Total Incidents",
+      "current_month": "This Month"
+    },
+    "charts": {
+       "dept_breakdown": "Incidents by Department",
+       "severity_mix": "Severity Mix Analysis",
+       "monthly_trend": "30-Day Incident Trend",
+       "risk_matrix": "Risk Assessment Matrix",
+       "status_breakdown": "Caseload by Status",
+       "rca_pareto": "Root Cause Analysis (Pareto)"
+    },
+    "likelihood": "Likelihood",
+    "impact": "Impact",
+    "risk_heatmap_title": "Mitigation Controls",
+    "risk_heatmap_sub": "ISO-compliant risk assessment for this occurrence."
+  },
+  "common": {
+    "severity": "Severity",
+    "status": "Status",
+    "department": "Department",
+    "date": "Date",
+    "location": "Location",
+    "title": "Title",
+    "actions": "Actions",
+    "search": "Search registry...",
+    "reference": "Reference No.",
+    "general_info": "General Information",
+    "investigation": "Investigation & RCA",
+    "save": "Save",
+    "save_changes": "Save Changes",
+    "cancel": "Cancel",
+    "close": "Close",
+    "processing": "Processing",
+    "evidence": "Evidence & Attachments",
+    "all": "All",
+    "pdf_report": "PDF Export",
+    "view": "View",
+    "due": "Due",
+    "success": "Action Successful",
+    "error": "An error occurred"
+  },
+  "status": {
+    "DRAFT": "Draft",
+    "SUBMITTED": "Submitted",
+    "UNDER_INVESTIGATION": "Investigation",
+    "VALIDATED": "Validated",
+    "CLOSED": "Closed",
+    "OPEN": "Open"
+  },
+  "severity_levels": {
+    "LOW": "Low",
+    "MEDIUM": "Medium",
+    "HIGH": "High",
+    "CRITICAL": "Critical",
+    "CRITICAL_RISK": "Critical Risk",
+    "HIGH_RISK": "High Risk",
+    "MEDIUM_RISK": "Medium Risk",
+    "LOW_RISK": "Low Risk"
+  },
+  "risk": {
+     "CRITICAL": "Critical Risk",
+     "HIGH": "High Risk",
+     "MEDIUM": "Medium Risk",
+     "LOW": "Low Risk",
+     "VERY_LOW": "Very Low Risk"
+  },
+  "incident_log": {
+     "page_title": "Incident & Case Registry",
+     "subtitle": "Comprehensive record of all reported HSE occurrences.",
+     "filters": "Refine Register",
+     "view_details": "View Details",
+     "security_governance": "Security Governance Register",
+     "active_actions": "Active CAPAs ({{count}})",
+     "columns": {
+        "REF": "REF",
+        "DATE": "DATE",
+        "TITLE": "INCIDENT DESCRIPTION",
+        "SEV": "SEVERITY",
+        "STATUS": "STATUS",
+        "DEPT": "DEPARTMENT"
+     }
+  },
+  "forms": {
+    "incident_title": "Incident Title",
+    "title": "Action Title",
+    "description": "Description",
+    "incident_type": "Incident Type",
+    "severity": "Severity",
+    "status": "Status",
+    "incident_date": "Incident Date",
+    "location": "Location / Zone",
+    "department": "Department",
+    "assigned_to": "Assigned To",
+    "injuries": "Injuries Reported",
+    "has_property_damage": "Property Damage?",
+    "property_damage": "Property Damage Details",
+    "hrs_lost": "Hrs Lost",
+    "days_lost": "Days Lost",
+    "submit": "Submit Record",
+    "cancel": "Cancel",
+    "due_date": "Due Date",
+    "priority": "Priority",
+    "root_cause_category": "Root Cause Category",
+    "root_cause_description": "Root Cause Analysis",
+    "estimated_cost": "Financial Impact (TND)",
+    "mandatory": "Required fields",
+    "optional": "Optional Details / Impact",
+    "hierarchy_of_control": "Hierarchy of Control",
+    "tabs": {
+       "general": "General",
+       "investigation": "Investigation"
+    },
+    "hierarchy_of_control_options": {
+       "ELIMINATION": "1. Elimination",
+       "SUBSTITUTION": "2. Substitution",
+       "ENGINEERING": "3. Engineering Controls",
+       "ADMINISTRATIVE": "4. Administrative",
+       "PPE": "5. PPE"
+    }
+  },
+  "incident_types": {
+     "ACCIDENT": "Accident",
+     "NEAR_MISS": "Near Miss",
+     "UNSAFE_CONDITION": "Unsafe Condition",
+     "FIRST_AID": "First Aid",
+     "ENVIRONMENTAL": "Environmental",
+     "ENVIRONMENT": "Environmental"
+  },
+  "rca_categories": {
+     "HUMAN_ERROR": "Human Error / Unsafe Act",
+     "EQUIPMENT_FAILURE": "Equipment / Tool Failure",
+     "PROCESS_GAP": "Workflow / Process Gap",
+     "ENVIRONMENTAL_FACTOR": "Environmental Factors",
+     "MANAGEMENT_FAILURE": "Supervisory / Mgmt Failure",
+     "TRAINING_GAP": "Inadequate Training"
+  }
+}

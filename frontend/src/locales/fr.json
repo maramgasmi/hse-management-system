@@ -1,0 +1,154 @@
+{
+  "sidebar": {
+    "dashboard": "Tableau de Bord",
+    "incidents": "Registre des Incidents",
+    "analytics": "Performance & Risque",
+    "logout": "Déconnexion",
+    "user_profile": "Profil Utilisateur",
+    "settings": "Paramètres Système",
+    "report_incident": "Déclarer un Incident"
+  },
+  "dashboard": {
+    "title": "Commandement Opérationnel HSE",
+    "subtitle": "Aperçu de la performance sécurité et des indicateurs de risque.",
+    "kpi": {
+      "trir": "TRIR (Taux d'Enregistrement)",
+      "ltifr": "LTIFR (Taux d'Accidents avec Arrêt)",
+      "lti_count": "Nombre Total d'Accidents",
+      "near_misses": "Presque Accidents",
+      "days_lost": "Jours Perdus",
+      "open_incidents": "Cas Actifs"
+    },
+    "charts": {
+       "dept_breakdown": "Incidents par Département",
+       "severity_mix": "Analyse de la Gravité",
+       "monthly_trend": "Tendance sur 30 Jours",
+       "risk_matrix": "Matrice d'Évaluation des Risques",
+       "status_breakdown": "Répartition par Statut",
+       "rca_pareto": "Analyse de Cause Racine (Pareto)"
+    },
+    "likelihood": "Probabilité",
+    "impact": "Impact / Conséquence",
+    "risk_heatmap_title": "Mesures de Prévention",
+    "risk_heatmap_sub": "Évaluation des risques conforme ISO pour cet événement."
+  },
+  "common": {
+    "severity": "Gravité",
+    "status": "Statut",
+    "department": "Département",
+    "date": "Date",
+    "location": "Lieu / Zone",
+    "title": "Titre",
+    "actions": "Actions",
+    "search": "Rechercher...",
+    "reference": "Référence No.",
+    "general_info": "Informations Générales",
+    "investigation": "Enquête & RCA",
+    "save": "Enregistrer",
+    "save_changes": "Enregistrer les modifications",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "processing": "Traitement...",
+    "evidence": "Preuves & Pièces Jointes",
+    "all": "Tous",
+    "pdf_report": "Export PDF",
+    "view": "Voir",
+    "due": "Échéance",
+    "success": "Action réussie",
+    "error": "Une erreur est survenue"
+  },
+  "status": {
+    "DRAFT": "Brouillon",
+    "SUBMITTED": "Soumis",
+    "UNDER_INVESTIGATION": "Sous Enquête",
+    "VALIDATED": "Validé",
+    "CLOSED": "Clôturé",
+    "OPEN": "Ouvert"
+  },
+  "severity_levels": {
+    "LOW": "Faible",
+    "MEDIUM": "Moyen",
+    "HIGH": "Élevé",
+    "CRITICAL": "Critique",
+    "CRITICAL_RISK": "Risque Critique",
+    "HIGH_RISK": "Risque Élevé",
+    "MEDIUM_RISK": "Risque Moyen",
+    "LOW_RISK": "Risque Faible"
+  },
+  "risk": {
+     "CRITICAL": "Risque Critique",
+     "HIGH": "Risque Élevé",
+     "MEDIUM": "Risque Moyen",
+     "LOW": "Risque Faible",
+     "VERY_LOW": "Risque Très Faible"
+  },
+  "incident_log": {
+     "page_title": "Registre des Incidents",
+     "subtitle": "Enregistrement complet de tous les événements HSE rapportés.",
+     "filters": "Affiner le Registre",
+     "view_details": "Voir Détails",
+     "security_governance": "Registre de Gouvernance Sécurité",
+     "active_actions": "CAPA Actives ({{count}})",
+     "columns": {
+        "REF": "REF",
+        "DATE": "DATE",
+        "TITLE": "DESCRIPTION DE L'INCIDENT",
+        "SEV": "GRAVITÉ",
+        "STATUS": "STATUT",
+        "DEPT": "DÉPARTEMENT"
+     }
+  },
+  "forms": {
+    "incident_title": "Titre de l'Incident",
+    "title": "Titre de l'Action",
+    "description": "Description",
+    "incident_type": "Type d'Incident",
+    "severity": "Gravité",
+    "status": "Statut",
+    "incident_date": "Date de l'Incident",
+    "location": "Lieu / Zone",
+    "department": "Département",
+    "assigned_to": "Assigné à",
+    "injuries": "Blessures Signalées",
+    "has_property_damage": "Dommages Matériels ?",
+    "property_damage": "Détails des Dommages",
+    "hrs_lost": "Heures Perdues",
+    "days_lost": "Jours Perdus",
+    "submit": "Soumettre",
+    "cancel": "Annuler",
+    "due_date": "Date d'échéance",
+    "priority": "Priorité",
+    "root_cause_category": "Catégorie de Cause",
+    "root_cause_description": "Analyse des Causes (RCA)",
+    "estimated_cost": "Impact Financier (TND)",
+    "mandatory": "Champs requis",
+    "optional": "Détails Optionnels / Impact",
+    "hierarchy_of_control": "Hiérarchie de Contrôle",
+    "tabs": {
+       "general": "Général",
+       "investigation": "Enquête"
+    },
+    "hierarchy_of_control_options": {
+       "ELIMINATION": "1. Élimination",
+       "SUBSTITUTION": "2. Substitution",
+       "ENGINEERING": "3. Contrôles d'Ingénierie",
+       "ADMINISTRATIVE": "4. Administratif",
+       "PPE": "5. EPI"
+    }
+  },
+  "incident_types": {
+     "ACCIDENT": "Accident",
+     "NEAR_MISS": "Presque Accident",
+     "UNSAFE_CONDITION": "Condition Dangereuse",
+     "FIRST_AID": "Premiers Secours",
+     "ENVIRONMENTAL": "Environnemental"
+  },
+  "rca_categories": {
+     "HUMAN_ERROR": "Erreur Humaine / Acte Inapte",
+     "EQUIPMENT_FAILURE": "Défaillance de l'Équipement",
+     "PROCESS_GAP": "Lacune dans le Processus",
+     "ENVIRONMENTAL_FACTOR": "Facteurs Environnementaux",
+     "MANAGEMENT_FAILURE": "Défaillance du Management",
+     "TRAINING_GAP": "Manque de Formation"
+  }
+}

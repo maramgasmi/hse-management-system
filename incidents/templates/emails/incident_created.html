@@ -1,16 +1,16 @@
 {% extends 'emails/base_email.html' %}
 
 {% block content %}
-<h2>✅ Incident Reported Successfully</h2>
+<h2>Incident Documented Successfully</h2>
 
-<p>Hello {{ recipient_name }},</p>
+<p>Hello <strong>{{ recipient_name }}</strong>,</p>
 
-<p>Your incident has been successfully reported and logged in the system.</p>
+<p>Your incident report has been successfully categorized and logged in the SafetyFirst HSE registry. An automated reference link has been established for tracking.</p>
 
 <div class="info-box">
     <div class="info-row">
-        <span class="info-label">Reference:</span>
-        <span class="info-value"><strong>{{ incident.reference }}</strong></span>
+        <span class="info-label">Reference ID:</span>
+        <span class="info-value"><strong style="color: #3498DB;">#{{ incident.reference }}</strong></span>
     </div>
     <div class="info-row">
         <span class="info-label">Title:</span>
@@ -19,35 +19,37 @@
     <div class="info-row">
         <span class="info-label">Severity:</span>
         <span class="info-value">
-            <span class="severity-badge severity-{{ incident.severity|lower }}">
+            <span class="severity-badge severity-{{ incident.severity }}">
                 {{ incident.get_severity_display }}
             </span>
         </span>
     </div>
     <div class="info-row">
         <span class="info-label">Status:</span>
-        <span class="info-value">{{ incident.get_status_display }}</span>
+        <span class="info-value" style="color: #6B7280; font-weight: 800; font-size: 11px;">{{ incident.get_status_display }}</span>
     </div>
     <div class="info-row">
         <span class="info-label">Location:</span>
         <span class="info-value">{{ incident.location }}</span>
     </div>
     <div class="info-row">
-        <span class="info-label">Date:</span>
-        <span class="info-value">{{ incident.incident_date|date:"F d, Y g:i A" }}</span>
+        <span class="info-label">Occurrence Date:</span>
+        <span class="info-value">{{ incident.incident_date|date:"F d, Y" }}</span>
     </div>
 </div>
 
-<p><strong>What happens next?</strong></p>
-<ul>
-    <li>Your incident will be reviewed by the HSE team</li>
-    <li>An investigator may be assigned</li>
-    <li>You'll receive updates via email</li>
+<h3 style="color: #ffffff; font-size: 14px; margin-top: 30px; letter-spacing: 1px;">GOVERNANCE PROTOCOL:</h3>
+<ul style="color: #9CA3AF; font-size: 13px; padding-left: 20px;">
+    <li>Incident assigned to the designated HSE Investigation Officer.</li>
+    <li>Root Cause Analysis (RCA) mandatory within 48 hours.</li>
+    <li>CAPA plan development initiated for risk mitigation.</li>
 </ul>
 
-<a href="http://localhost:3000/incidents/{{ incident.id }}" class="button">
-    View Incident Details
-</a>
+<div style="text-align: center;">
+    <a href="http://localhost:3000/incidents" style="display: inline-block;" class="button">
+        GO TO INVESTIGATION
+    </a>
+</div>
 
-<p>Thank you for reporting and helping maintain a safe workplace.</p>
+<p style="font-size: 12px; color: #6B7280; font-style: italic;">Thank you for your commitment to industrial safety. Your report helps protect our workforce and maintain ISO 45001 compliance standards.</p>
 {% endblock %}

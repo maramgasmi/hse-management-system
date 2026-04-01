@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+from urllib.parse import unquote, urlparse
+
 from decouple import config, Csv
 try:
     from decouple import config as env
@@ -101,23 +103,51 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'hse_database',
-        'USER': 'postgres',
-        'PASSWORD': 'postgres123',  
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
-}
 
-#DATABASES = {  (for quick development)
-   # 'default': {
-    #    'ENGINE': 'django.db.backends.sqlite3',
-     #   'NAME': BASE_DIR / 'db.sqlite3',
-    #}
-#}
+def _database_from_url(url: str) -> dict:
+    """Build Django DATABASES['default'] from postgresql://... URL."""
+    parsed = urlparse(url)
+    if parsed.scheme not in ('postgres', 'postgresql'):
+        raise ValueError(
+            f"DATABASE_URL must use postgresql:// (got scheme {parsed.scheme!r}). "
+            "Remove sqlite URLs from .env if you use PostgreSQL."
+        )
+    path = (parsed.path or '').lstrip('/')
+    return {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': unquote(path) if path else '',
+        'USER': unquote(parsed.username) if parsed.username else '',
+        'PASSWORD': unquote(parsed.password) if parsed.password else '',
+        'HOST': parsed.hostname or 'localhost',
+        'PORT': str(parsed.port or 5432),
+    }
+
+
+def _database_from_env() -> dict:
+    """
+    PostgreSQL only (same app behavior as before).
+
+    Preferred: set DATABASE_URL in .env, e.g.:
+        postgresql://USER:PASSWORD@HOST:5432/DB_NAME
+
+    Alternative: omit DATABASE_URL and set POSTGRES_DB, POSTGRES_USER,
+    POSTGRES_PASSWORD, POSTGRES_HOST, POSTGRES_PORT (see .env.example).
+    """
+    database_url = env('DATABASE_URL', default='').strip()
+    if database_url:
+        return _database_from_url(database_url)
+
+    return {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': env('POSTGRES_DB', default='hse_database'),
+        'USER': env('POSTGRES_USER', default='postgres'),
+        'PASSWORD': env('POSTGRES_PASSWORD', default=''),
+        'HOST': env('POSTGRES_HOST', default='localhost'),
+        'PORT': env('POSTGRES_PORT', default='5432'),
+    }
+
+
+DATABASES = {'default': _database_from_env()}
 
 
 # Password validation

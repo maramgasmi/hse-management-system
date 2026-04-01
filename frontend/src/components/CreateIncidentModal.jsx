@@ -1,11 +1,95 @@
+// =============================================================
+// CreateIncidentModal.jsx — high-fidelity dark redesign
+// -------------------------------------------------------------
+// Features in this version:
+//   • Full-screen dark modal (SafetyFirst HSE theme)
+//   • Backdrop blur with semi-transparent overlay
+//   • Detailed form layout with industrial typography
+//   • File Evidence Uploader (integrated before submission)
+//   • Multi-step process (record incident → upload evidence sequentaly)
+//
+// All colours match the #0B0E14 → #151921 palette.
+// =============================================================
+
 import { Fragment, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
-import api from '../services/api';
+import { XMarkIcon, DocumentPlusIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { useTranslation } from 'react-i18next';
+import api, { uploadEvidence } from '../services/api';
 import toast from 'react-hot-toast';
+import EvidenceUploader from './EvidenceUploader';
+
+// ---------------------------------------------------------------
+// Theme tokens
+// ---------------------------------------------------------------
+const BG        = '#0B0E14';
+const CARD_BG   = '#151921';
+const BORDER    = '#232933';
+const INSET_BG  = '#0F131A';
+const BLUE      = '#3498DB';
+const ORANGE    = '#E67E22';
+
+// ---------------------------------------------------------------
+// Custom input field component
+// ---------------------------------------------------------------
+const FormField = ({ label, name, value, onChange, type = 'text', as = 'input', required, placeholder, options, children }) => {
+  const inputStyle = {
+    background: INSET_BG,
+    border: `1px solid ${BORDER}`,
+    color: '#FFF',
+    borderRadius: 6,
+    width: '100%',
+    padding: '8px 12px',
+    fontSize: 14,
+    focusBorderColor: BLUE,
+    outline: 'none',
+  };
+
+  return (
+    <div className="mb-4">
+      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5 ml-1">
+        {label}{required && <span style={{ color: ORANGE }}> *</span>}
+      </label>
+      {as === 'textarea' ? (
+        <textarea
+          name={name}
+          value={value}
+          onChange={onChange}
+          style={{ ...inputStyle, minHeight: 100, resize: 'vertical' }}
+          placeholder={placeholder}
+          required={required}
+        />
+      ) : as === 'select' ? (
+        <select
+          name={name}
+          value={value}
+          onChange={onChange}
+          style={inputStyle}
+          required={required}
+        >
+          {children}
+        </select>
+      ) : (
+        <input
+          type={type}
+          name={name}
+          value={value}
+          onChange={onChange}
+          style={inputStyle}
+          placeholder={placeholder}
+          required={required}
+        />
+      )}
+    </div>
+  );
+};
 
 const CreateIncidentModal = ({ isOpen, onClose, onSuccess }) => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState([]);
+  const [uploadStatuses, setUploadStatuses] = useState([]);
+  
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -15,6 +99,8 @@ const CreateIncidentModal = ({ isOpen, onClose, onSuccess }) => {
     location: '',
     department: '',
     injuries: '',
+    has_property_damage: false,
+    property_damage: '',
     work_hours_lost: 0,
     days_lost: 0,
   });
@@ -27,55 +113,64 @@ const CreateIncidentModal = ({ isOpen, onClose, onSuccess }) => {
     }));
   };
 
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      description: '',
+      incident_type: 'ACCIDENT',
+      severity: 'MEDIUM',
+      incident_date: new Date().toISOString().split('T')[0],
+      location: '',
+      department: '',
+      injuries: '',
+      has_property_damage: false,
+      property_damage: '',
+      work_hours_lost: 0,
+      days_lost: 0,
+    });
+    setPendingFiles([]);
+    setUploadStatuses([]);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // Add status field for Django
-      const dataToSend = {
-        ...formData,
-        status: 'DRAFT',
-      };
+      // Step 1: Create incident record
+      const response = await api.post('/incidents/', { ...formData, status: 'DRAFT' });
+      const newIncident = response.data;
       
-      console.log('📤 Sending incident data:', dataToSend);
-      
-      const response = await api.post('/incidents/', dataToSend);
-      
-      console.log('✅ Incident created successfully:', response.data);
-      console.log('🔄 Calling onSuccess callback to refresh table...');
-      
-      toast.success('Incident created successfully! ✅');
-      
-      // Close modal first
+      // Step 2: Upload evidence files sequentially
+      if (pendingFiles.length > 0) {
+        toast.loading(t('common.evidence') + '...', { id: 'upload-toast' });
+        
+        for (let i = 0; i < pendingFiles.length; i++) {
+          const file = pendingFiles[i];
+          try {
+            await uploadEvidence(newIncident.id, file, (progress) => {
+              setUploadStatuses(prev => {
+                const copy = [...prev];
+                copy[i] = { name: file.name, progress };
+                return copy;
+              });
+            });
+          } catch (uploadErr) {
+            console.error(`❌ Failed to upload ${file.name}:`, uploadErr);
+            toast.error(`Failed to upload ${file.name}`);
+          }
+        }
+        toast.dismiss('upload-toast');
+      }
+
+      toast.success(t('common.save_changes') + ' ✅');
+      resetForm();
+      onSuccess?.();
       onClose();
-      
-      // Then refresh the list (this calls refreshIncidents in parent)
-      await onSuccess();
-      
-      console.log('✅ Table refresh completed!');
-      
-      // Reset form
-      setFormData({
-        title: '',
-        description: '',
-        incident_type: 'ACCIDENT',
-        severity: 'MEDIUM',
-        incident_date: new Date().toISOString().split('T')[0],
-        location: '',
-        department: '',
-        injuries: '',
-        work_hours_lost: 0,
-        days_lost: 0,
-      });
-    } catch (error) {
-      console.error('❌ Error creating incident:', error);
-      console.error('❌ Error response:', error.response?.data);
-      
-      const errorMsg = error.response?.data?.detail || 
-                       JSON.stringify(error.response?.data) || 
-                       'Failed to create incident';
-      toast.error(errorMsg);
+    } catch (err) {
+      console.error('❌ Error reporting incident:', err);
+      const msg = err.response?.data?.detail || Object.values(err.response?.data || {}).flat().join(', ') || 'Failed to report incident';
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -84,264 +179,143 @@ const CreateIncidentModal = ({ isOpen, onClose, onSuccess }) => {
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={onClose}>
+        
+        {/* Backdrop blur */}
         <Transition.Child
           as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
+          enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100"
+          leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black bg-opacity-25" />
+          <div className="fixed inset-0 backdrop-blur-sm" style={{ background: 'rgba(0,0,0,0.7)' }} />
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
           <div className="flex min-h-full items-center justify-center p-4">
             <Transition.Child
               as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
+              enter="ease-out duration-300" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                <Dialog.Title
-                  as="div"
-                  className="flex justify-between items-center mb-4"
-                >
-                  <h3 className="text-lg font-medium leading-6 text-gray-900">
-                    Create New Incident
-                  </h3>
-                  <button
-                    onClick={onClose}
-                    className="text-gray-400 hover:text-gray-500"
-                  >
-                    <XMarkIcon className="h-6 w-6" />
+              <Dialog.Panel
+                className="w-full max-w-2xl rounded-lg shadow-2xl transition-all"
+                style={{ background: CARD_BG, border: `1px solid ${BORDER}` }}
+              >
+                {/* Header */}
+                <div className="flex justify-between items-center px-6 py-4" style={{ borderBottom: `1px solid ${BORDER}` }}>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-md" style={{ background: `${BLUE}18` }}>
+                      <DocumentPlusIcon className="h-5 w-5" style={{ color: BLUE }} />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-white leading-tight">{t('sidebar.report_incident')}</h3>
+                      <p className="text-xs text-gray-500 font-medium">{t('incident_log.subtitle')}</p>
+                    </div>
+                  </div>
+                  <button onClick={onClose} className="p-1.5 rounded-md hover:bg-white/5 transition-colors">
+                    <XMarkIcon className="h-5 w-5 text-gray-500" />
                   </button>
-                </Dialog.Title>
+                </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Basic Information Section */}
-                  <div>
-                    <h4 className="text-sm font-semibold text-gray-900 mb-3 pb-2 border-b border-gray-200">
-                      Basic Information
-                    </h4>
-                    <div className="space-y-4">
-                      {/* Title */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          Title *
-                        </label>
-                        <input
-                          type="text"
-                          name="title"
-                          required
-                          value={formData.title}
-                          onChange={handleChange}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border"
-                          placeholder="Brief description of the incident"
-                        />
-                      </div>
-
-                      {/* Description */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          Description *
-                        </label>
-                        <textarea
-                          name="description"
-                          required
-                          rows={3}
-                          value={formData.description}
-                          onChange={handleChange}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border"
-                          placeholder="Detailed description of what happened"
-                        />
-                      </div>
+                {/* Form Body */}
+                <form onSubmit={handleSubmit} className="p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                    {/* Main Information */}
+                    <div className="col-span-1 md:col-span-2">
+                       <FormField label={t('forms.incident_title')} name="title" value={formData.title} onChange={handleChange} required placeholder="..." />
+                       <FormField label={t('forms.description')} name="description" as="textarea" value={formData.description} onChange={handleChange} required placeholder="..." />
                     </div>
-                  </div>
 
-                  {/* Classification Section */}
-                  <div>
-                    <h4 className="text-sm font-semibold text-gray-900 mb-3 pb-2 border-b border-gray-200">
-                      Classification
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Type */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          Incident Type *
-                        </label>
-                        <select
-                          name="incident_type"
-                          value={formData.incident_type}
-                          onChange={handleChange}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border"
-                        >
-                          <option value="ACCIDENT">Accident</option>
-                          <option value="NEAR_MISS">Near Miss</option>
-                          <option value="UNSAFE_CONDITION">Unsafe Condition</option>
-                          <option value="ENVIRONMENTAL">Environmental</option>
-                        </select>
-                      </div>
+                    <FormField label={t('forms.incident_type')} name="incident_type" as="select" value={formData.incident_type} onChange={handleChange} required>
+                      <option value="ACCIDENT">{t('incident_types.ACCIDENT')}</option>
+                      <option value="NEAR_MISS">{t('incident_types.NEAR_MISS')}</option>
+                      <option value="UNSAFE_CONDITION">{t('incident_types.UNSAFE_CONDITION')}</option>
+                      <option value="FIRST_AID">{t('incident_types.FIRST_AID')}</option>
+                      <option value="ENVIRONMENTAL">{t('incident_types.ENVIRONMENTAL')}</option>
+                    </FormField>
 
-                      {/* Severity */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          Severity *
-                        </label>
-                        <select
-                          name="severity"
-                          value={formData.severity}
-                          onChange={handleChange}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border"
-                        >
-                          <option value="LOW">Low</option>
-                          <option value="MEDIUM">Medium</option>
-                          <option value="HIGH">High</option>
-                          <option value="CRITICAL">Critical</option>
-                        </select>
-                      </div>
+                    <FormField label={t('forms.severity')} name="severity" as="select" value={formData.severity} onChange={handleChange} required>
+                      <option value="LOW">{t('severity_levels.LOW')}</option>
+                      <option value="MEDIUM">{t('severity_levels.MEDIUM')}</option>
+                      <option value="HIGH">{t('severity_levels.HIGH')}</option>
+                      <option value="CRITICAL">{t('severity_levels.CRITICAL')}</option>
+                    </FormField>
+
+                    <FormField label={t('forms.date')} name="incident_date" type="date" value={formData.incident_date} onChange={handleChange} required />
+                    
+                    <FormField label={t('forms.location')} name="location" value={formData.location} onChange={handleChange} required placeholder="e.g. Workshop B" />
+                    <FormField label={t('forms.department')} name="department" value={formData.department} onChange={handleChange} placeholder="e.g. Operations" />
+                    
+                    <div className="col-span-1 md:col-span-2">
+                      <hr className="my-4" style={{ borderColor: BORDER }} />
+                      <h4 className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-3">{t('forms.optional')}</h4>
                     </div>
-                  </div>
 
-                  {/* Location & Time Section */}
-                  <div>
-                    <h4 className="text-sm font-semibold text-gray-900 mb-3 pb-2 border-b border-gray-200">
-                      Location & Time
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {/* Date */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          Date *
-                        </label>
-                        <input
-                          type="date"
-                          name="incident_date"
-                          required
-                          value={formData.incident_date}
-                          onChange={handleChange}
-                          max={new Date().toISOString().split('T')[0]}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border"
-                        />
-                      </div>
-
-                      {/* Location */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          Location *
-                        </label>
-                        <input
-                          type="text"
-                          name="location"
-                          required
-                          value={formData.location}
-                          onChange={handleChange}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border"
-                          placeholder="Where it happened"
-                        />
-                      </div>
-
-                      {/* Department */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          Department *
-                        </label>
-                        <input
-                          type="text"
-                          name="department"
-                          required
-                          value={formData.department}
-                          onChange={handleChange}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border"
-                          placeholder="e.g., Operations"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Impact Section */}
-                  <div>
-                    <h4 className="text-sm font-semibold text-gray-900 mb-3 pb-2 border-b border-gray-200">
-                      Impact
-                    </h4>
-                    <div className="space-y-4">
-                      {/* Injuries */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          Injuries (if any)
-                        </label>
-                        <input
-                          type="text"
-                          name="injuries"
-                          value={formData.injuries}
-                          onChange={handleChange}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border"
-                          placeholder="Describe any injuries"
-                        />
-                      </div>
-
-                      {/* Work Impact */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700">
-                            Work Hours Lost
-                          </label>
-                          <input
-                            type="number"
-                            name="work_hours_lost"
-                            min="0"
-                            value={formData.work_hours_lost}
-                            onChange={handleChange}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border"
+                    <FormField label={t('forms.injuries')} name="injuries" value={formData.injuries} onChange={handleChange} placeholder="..." />
+                    
+                    <div className="col-span-1 md:col-span-2 mb-4">
+                       <label className="flex items-center gap-3 cursor-pointer group">
+                          <input 
+                             type="checkbox" 
+                             name="has_property_damage" 
+                             checked={formData.has_property_damage} 
+                             onChange={handleChange}
+                             className="w-4 h-4 rounded border-gray-700 bg-gray-800 text-blue-500 focus:ring-blue-500/20"
                           />
-                        </div>
+                          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest group-hover:text-gray-200 transition-colors">
+                             {t('forms.has_property_damage')}
+                          </span>
+                       </label>
+                    </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700">
-                            Days Lost
-                          </label>
-                          <input
-                            type="number"
-                            name="days_lost"
-                            min="0"
-                            value={formData.days_lost}
-                            onChange={handleChange}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border"
+                    {formData.has_property_damage && (
+                       <div className="col-span-1 md:col-span-2 animate-in fade-in slide-in-from-top-1 duration-300">
+                          <FormField 
+                             label={t('forms.property_damage')} 
+                             name="property_damage" 
+                             as="textarea" 
+                             value={formData.property_damage} 
+                             onChange={handleChange} 
+                             placeholder="..." 
                           />
-                        </div>
-                      </div>
+                       </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-4">
+                       <FormField label={t('forms.hrs_lost')} name="work_hours_lost" type="number" value={formData.work_hours_lost} onChange={handleChange} />
+                       <FormField label={t('forms.days_lost')} name="days_lost" type="number" value={formData.days_lost} onChange={handleChange} />
+                    </div>
+
+                    {/* Evidence Uploader Section */}
+                    <div className="col-span-1 md:col-span-2 mt-2">
+                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-3 ml-1">{t('common.evidence')}</label>
+                       <EvidenceUploader
+                          pendingFiles={pendingFiles}
+                          setPendingFiles={setPendingFiles}
+                          uploadStatuses={uploadStatuses}
+                       />
                     </div>
                   </div>
 
-                  {/* Buttons */}
-                  <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                  {/* Footer Actions */}
+                   <div className="flex items-center justify-end gap-3 mt-8 pt-6" style={{ borderTop: `1px solid ${BORDER}` }}>
                     <button
                       type="button"
                       onClick={onClose}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                      className="px-5 py-2 text-sm font-semibold text-gray-400 hover:text-white transition-colors"
                     >
-                      Cancel
+                      {t('common.cancel')}
                     </button>
                     <button
                       type="submit"
                       disabled={loading}
-                      className="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex items-center gap-2 px-6 py-2 rounded-md text-sm font-bold text-white shadow-lg transition-all active:scale-[0.98] disabled:opacity-50"
+                      style={{ background: 'linear-gradient(90deg, #2980B9 0%, #3498DB 100%)' }}
                     >
-                      {loading ? (
-                        <span className="flex items-center">
-                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Creating...
-                        </span>
-                      ) : (
-                        'Create Incident'
+                      {loading ? '...' : (
+                        <Fragment>
+                          <CheckCircleIcon className="h-4 w-4" />
+                          {t('sidebar.report_incident')}
+                        </Fragment>
                       )}
                     </button>
                   </div>
